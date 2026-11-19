@@ -1,0 +1,170 @@
+{
+  "settings": {
+    "baud": 10312500000.0,
+    "sps": 16,
+    "pattern_periods": 1,
+    "resolution": "mode",
+    "level": "power",
+    "seed": 0,
+    "backward_waves": false
+  },
+  "nodes": [
+    {
+      "id": "src",
+      "kind": "prbs13q",
+      "params": {
+        "levels": 2,
+        "seed": 2731
+      }
+    },
+    {
+      "id": "drv",
+      "kind": "driver",
+      "params": {}
+    },
+    {
+      "id": "vcsel",
+      "kind": "vcsel",
+      "params": {
+        "beam_radius": 4e-06,
+        "er_db": 4.0,
+        "p_avg_dbm": 0.0,
+        "rin_enabled": false,
+        "seed": 8383450706350178305,
+        "stokes": [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "vcsel": {
+          "resonance_freq": 10000000000.0,
+          "damping": 1.0,
+          "wavelength": 8.4e-07,
+          "spectral_width_rms": 2.9e-10,
+          "rin_db_hz": -140.0
+        },
+        "vcsel_mode_groups": 4
+      }
+    },
+    {
+      "id": "el0",
+      "kind": "connector",
+      "params": {
+        "loss_db": 0.0,
+        "offset": 0.0,
+        "tilt": 0.0
+      }
+    },
+    {
+      "id": "el1",
+      "kind": "fiber",
+      "params": {
+        "attenuation_db_per_km": 2.3,
+        "core_radius": 2.5e-05,
+        "domain_factor": 2.0,
+        "extra_loss_db": 0.0,
+        "grid_points_per_radius": 300,
+        "length": 100.0,
+        "na": 0.2,
+        "profile": {
+          "kind": "graded",
+          "alpha": 1.917
+        }
+      }
+    },
+    {
+      "id": "pin",
+      "kind": "pin",
+      "params": {
+        "detector_radius": null,
+        "noise_seed": 5933492509060628482,
+        "responsivity": 0.5,
+        "shot_noise": false
+      }
+    },
+    {
+      "id": "tia",
+      "kind": "tia",
+      "params": {
+        "noise_density": 1.5e-11,
+        "noise_seed": 5933492509060628482,
+        "thermal_noise": false,
+        "transimpedance": 1000.0
+      }
+    },
+    {
+      "id": "rxf",
+      "kind": "bessel_thomson",
+      "params": {
+        "enabled": true,
+        "f3db_rel": 0.8
+      }
+    },
+    {
+      "id": "rx",
+      "kind": "receiver_output",
+      "params": {}
+    },
+    {
+      "id": "ana",
+      "kind": "pam4_analyzer",
+      "params": {}
+    },
+    {
+      "id": "eye",
+      "kind": "eye_diagram",
+      "params": {}
+    }
+  ],
+  "wires": [
+    {
+      "from": "src.out",
+      "to": "drv.in"
+    },
+    {
+      "from": "drv.out",
+      "to": "vcsel.in"
+    },
+    {
+      "from": "vcsel.out",
+      "to": "el0.in"
+    },
+    {
+      "from": "el0.out",
+      "to": "el1.in"
+    },
+    {
+      "from": "el1.out",
+      "to": "pin.in"
+    },
+    {
+      "from": "pin.out",
+      "to": "tia.in"
+    },
+    {
+      "from": "tia.out",
+      "to": "rxf.in"
+    },
+    {
+      "from": "rxf.out",
+      "to": "rx.in"
+    },
+    {
+      "from": "rxf.out",
+      "to": "ana.in"
+    },
+    {
+      "from": "src.out",
+      "to": "ana.ref"
+    },
+    {
+      "from": "rxf.out",
+      "to": "eye.in"
+    },
+    {
+      "from": "src.out",
+      "to": "eye.ref"
+    }
+  ]
+}

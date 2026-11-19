@@ -1,0 +1,33 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/lightstone-core",
+    "crates/lightstone-analysis",
+    "crates/lightstone-py",
+    "crates/lightstone-wasm",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/lightstone-photonics/lightstone"
+
+[workspace.dependencies]
+lightstone-core = { path = "crates/lightstone-core" }
+lightstone-analysis = { path = "crates/lightstone-analysis" }
+rustfft = "=6.4.1"
+num-complex = "=0.4.6"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+
+# Tests run heavy numerics (mode solver, long noise records); optimize them.
+[profile.test]
+opt-level = 3
+
+[profile.dev.package."*"]
+opt-level = 3

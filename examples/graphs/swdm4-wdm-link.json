@@ -1,0 +1,670 @@
+{
+  "settings": {
+    "baud": 53125000000,
+    "sps": 8,
+    "pattern_periods": 1,
+    "resolution": "mode_group",
+    "level": "power",
+    "seed": 0,
+    "backward_waves": false
+  },
+  "nodes": [
+    {
+      "id": "src0",
+      "kind": "prbs13q",
+      "params": {
+        "seed": 2731
+      }
+    },
+    {
+      "id": "drv0",
+      "kind": "driver",
+      "params": {}
+    },
+    {
+      "id": "vcsel0",
+      "kind": "vcsel",
+      "params": {
+        "vcsel": {
+          "wavelength": 8.5e-7
+        }
+      }
+    },
+    {
+      "id": "src1",
+      "kind": "prbs13q",
+      "params": {
+        "seed": 1
+      }
+    },
+    {
+      "id": "drv1",
+      "kind": "driver",
+      "params": {}
+    },
+    {
+      "id": "vcsel1",
+      "kind": "vcsel",
+      "params": {
+        "vcsel": {
+          "wavelength": 8.8e-7
+        }
+      }
+    },
+    {
+      "id": "src2",
+      "kind": "prbs13q",
+      "params": {
+        "seed": 77
+      }
+    },
+    {
+      "id": "drv2",
+      "kind": "driver",
+      "params": {}
+    },
+    {
+      "id": "vcsel2",
+      "kind": "vcsel",
+      "params": {
+        "vcsel": {
+          "wavelength": 9.1e-7
+        }
+      }
+    },
+    {
+      "id": "src3",
+      "kind": "prbs13q",
+      "params": {
+        "seed": 4001
+      }
+    },
+    {
+      "id": "drv3",
+      "kind": "driver",
+      "params": {}
+    },
+    {
+      "id": "vcsel3",
+      "kind": "vcsel",
+      "params": {
+        "vcsel": {
+          "wavelength": 9.4e-7
+        }
+      }
+    },
+    {
+      "id": "mux",
+      "kind": "wdm_mux",
+      "params": {}
+    },
+    {
+      "id": "con",
+      "kind": "connector",
+      "params": {}
+    },
+    {
+      "id": "fib",
+      "kind": "mmf",
+      "params": {
+        "type": "om5",
+        "length": 100
+      }
+    },
+    {
+      "id": "demux",
+      "kind": "wdm_demux",
+      "params": {
+        "width": 4e-9,
+        "order": 1
+      }
+    },
+    {
+      "id": "pin0",
+      "kind": "pin",
+      "params": {}
+    },
+    {
+      "id": "tia0",
+      "kind": "tia",
+      "params": {}
+    },
+    {
+      "id": "rxf0",
+      "kind": "bessel_thomson",
+      "params": {
+        "f3db_rel": 0.3
+      }
+    },
+    {
+      "id": "ffe0",
+      "kind": "ffe",
+      "params": {
+        "n_taps": 5
+      }
+    },
+    {
+      "id": "ana0",
+      "kind": "pam4_analyzer",
+      "params": {}
+    },
+    {
+      "id": "pin1",
+      "kind": "pin",
+      "params": {}
+    },
+    {
+      "id": "tia1",
+      "kind": "tia",
+      "params": {}
+    },
+    {
+      "id": "rxf1",
+      "kind": "bessel_thomson",
+      "params": {}
+    },
+    {
+      "id": "ffe1",
+      "kind": "ffe",
+      "params": {
+        "n_taps": 5,
+        "noise_aware": false
+      }
+    },
+    {
+      "id": "ana1",
+      "kind": "pam4_analyzer",
+      "params": {}
+    },
+    {
+      "id": "pin2",
+      "kind": "pin",
+      "params": {}
+    },
+    {
+      "id": "tia2",
+      "kind": "tia",
+      "params": {}
+    },
+    {
+      "id": "rxf2",
+      "kind": "bessel_thomson",
+      "params": {}
+    },
+    {
+      "id": "ffe2",
+      "kind": "ffe",
+      "params": {
+        "n_taps": 5
+      }
+    },
+    {
+      "id": "ana2",
+      "kind": "pam4_analyzer",
+      "params": {}
+    },
+    {
+      "id": "pin3",
+      "kind": "pin",
+      "params": {}
+    },
+    {
+      "id": "tia3",
+      "kind": "tia",
+      "params": {}
+    },
+    {
+      "id": "rxf3",
+      "kind": "bessel_thomson",
+      "params": {}
+    },
+    {
+      "id": "ffe3",
+      "kind": "ffe",
+      "params": {
+        "n_taps": 5
+      }
+    },
+    {
+      "id": "eye3",
+      "kind": "eye_diagram",
+      "params": {
+        "width": 300,
+        "height": 200
+      }
+    },
+    {
+      "id": "ana3",
+      "kind": "pam4_analyzer",
+      "params": {}
+    },
+    {
+      "id": "osa",
+      "kind": "optical_spectrum_analyzer",
+      "params": {
+        "points": 751,
+        "rbw": 1e-10,
+        "start": 8.2e-7,
+        "stop": 9.7e-7
+      }
+    }
+  ],
+  "wires": [
+    {
+      "from": "src0.out",
+      "to": "drv0.in"
+    },
+    {
+      "from": "drv0.out",
+      "to": "vcsel0.in"
+    },
+    {
+      "from": "src1.out",
+      "to": "drv1.in"
+    },
+    {
+      "from": "drv1.out",
+      "to": "vcsel1.in"
+    },
+    {
+      "from": "src2.out",
+      "to": "drv2.in"
+    },
+    {
+      "from": "drv2.out",
+      "to": "vcsel2.in"
+    },
+    {
+      "from": "src3.out",
+      "to": "drv3.in"
+    },
+    {
+      "from": "drv3.out",
+      "to": "vcsel3.in"
+    },
+    {
+      "from": "vcsel0.out",
+      "to": "mux.in0"
+    },
+    {
+      "from": "vcsel1.out",
+      "to": "mux.in1"
+    },
+    {
+      "from": "vcsel2.out",
+      "to": "mux.in2"
+    },
+    {
+      "from": "vcsel3.out",
+      "to": "mux.in3"
+    },
+    {
+      "from": "mux.out",
+      "to": "con.in"
+    },
+    {
+      "from": "con.out",
+      "to": "fib.in"
+    },
+    {
+      "from": "fib.out",
+      "to": "demux.in"
+    },
+    {
+      "from": "demux.out0",
+      "to": "pin0.in"
+    },
+    {
+      "from": "pin0.out",
+      "to": "tia0.in"
+    },
+    {
+      "from": "tia0.out",
+      "to": "rxf0.in"
+    },
+    {
+      "from": "rxf0.out",
+      "to": "ffe0.in"
+    },
+    {
+      "from": "src0.out",
+      "to": "ffe0.ref"
+    },
+    {
+      "from": "ffe0.out",
+      "to": "ana0.in"
+    },
+    {
+      "from": "src0.out",
+      "to": "ana0.ref"
+    },
+    {
+      "from": "demux.out1",
+      "to": "pin1.in"
+    },
+    {
+      "from": "pin1.out",
+      "to": "tia1.in"
+    },
+    {
+      "from": "tia1.out",
+      "to": "rxf1.in"
+    },
+    {
+      "from": "rxf1.out",
+      "to": "ffe1.in"
+    },
+    {
+      "from": "src1.out",
+      "to": "ffe1.ref"
+    },
+    {
+      "from": "ffe1.out",
+      "to": "ana1.in"
+    },
+    {
+      "from": "src1.out",
+      "to": "ana1.ref"
+    },
+    {
+      "from": "demux.out2",
+      "to": "pin2.in"
+    },
+    {
+      "from": "pin2.out",
+      "to": "tia2.in"
+    },
+    {
+      "from": "tia2.out",
+      "to": "rxf2.in"
+    },
+    {
+      "from": "rxf2.out",
+      "to": "ffe2.in"
+    },
+    {
+      "from": "src2.out",
+      "to": "ffe2.ref"
+    },
+    {
+      "from": "ffe2.out",
+      "to": "ana2.in"
+    },
+    {
+      "from": "src2.out",
+      "to": "ana2.ref"
+    },
+    {
+      "from": "demux.out3",
+      "to": "pin3.in"
+    },
+    {
+      "from": "pin3.out",
+      "to": "tia3.in"
+    },
+    {
+      "from": "tia3.out",
+      "to": "rxf3.in"
+    },
+    {
+      "from": "rxf3.out",
+      "to": "ffe3.in"
+    },
+    {
+      "from": "src3.out",
+      "to": "ffe3.ref"
+    },
+    {
+      "from": "ffe3.out",
+      "to": "eye3.in"
+    },
+    {
+      "from": "src3.out",
+      "to": "eye3.ref"
+    },
+    {
+      "from": "ffe3.out",
+      "to": "ana3.in"
+    },
+    {
+      "from": "src3.out",
+      "to": "ana3.ref"
+    },
+    {
+      "from": "fib.out",
+      "to": "osa.in"
+    }
+  ],
+  "layout": {
+    "positions": {
+      "src0": [
+        0,
+        0
+      ],
+      "drv0": [
+        290,
+        0
+      ],
+      "vcsel0": [
+        580,
+        0
+      ],
+      "pin0": [
+        2371,
+        -2
+      ],
+      "tia0": [
+        2661,
+        -2
+      ],
+      "rxf0": [
+        2951,
+        -2
+      ],
+      "ffe0": [
+        3241,
+        -2
+      ],
+      "ana0": [
+        3707,
+        -330
+      ],
+      "src1": [
+        0,
+        180
+      ],
+      "drv1": [
+        290,
+        180
+      ],
+      "vcsel1": [
+        580,
+        180
+      ],
+      "pin1": [
+        2375,
+        179
+      ],
+      "tia1": [
+        2661,
+        178
+      ],
+      "rxf1": [
+        2951,
+        178
+      ],
+      "ffe1": [
+        3241,
+        178
+      ],
+      "ana1": [
+        3712,
+        -124
+      ],
+      "src2": [
+        0,
+        360
+      ],
+      "drv2": [
+        290,
+        360
+      ],
+      "vcsel2": [
+        580,
+        360
+      ],
+      "pin2": [
+        2385,
+        358
+      ],
+      "tia2": [
+        2661,
+        358
+      ],
+      "rxf2": [
+        2951,
+        358
+      ],
+      "ffe2": [
+        3241,
+        358
+      ],
+      "ana2": [
+        3716,
+        81
+      ],
+      "src3": [
+        0,
+        540
+      ],
+      "drv3": [
+        290,
+        540
+      ],
+      "vcsel3": [
+        580,
+        540
+      ],
+      "pin3": [
+        2371,
+        538
+      ],
+      "tia3": [
+        2661,
+        538
+      ],
+      "rxf3": [
+        2951,
+        538
+      ],
+      "ffe3": [
+        3241,
+        538
+      ],
+      "eye3": [
+        3721,
+        501
+      ],
+      "ana3": [
+        3718,
+        282
+      ],
+      "mux": [
+        1017,
+        239
+      ],
+      "con": [
+        1276,
+        266
+      ],
+      "fib": [
+        1513,
+        268
+      ],
+      "demux": [
+        1929,
+        241
+      ],
+      "osa": [
+        1839,
+        457
+      ],
+      "frame:frame1": [
+        -24,
+        -38
+      ],
+      "frame:frame2": [
+        954,
+        132
+      ],
+      "frame:frame3": [
+        2347,
+        -40
+      ],
+      "frame:frame4": [
+        3621,
+        -393
+      ]
+    },
+    "frames": [
+      {
+        "id": "frame1",
+        "label": "Transmitters: 850 / 880 / 910 / 940 nm",
+        "x": -24,
+        "y": -38,
+        "w": 878,
+        "h": 672
+      },
+      {
+        "id": "frame2",
+        "label": "Channel: WDM mux, 100 m OM5, WDM demux",
+        "x": 954,
+        "y": 132,
+        "w": 1262,
+        "h": 290
+      },
+      {
+        "id": "frame3",
+        "label": "Receivers with 5-tap FFE",
+        "x": 2347,
+        "y": -40,
+        "w": 1168,
+        "h": 672
+      },
+      {
+        "id": "frame4",
+        "label": "Eye diagram and SER per channel",
+        "x": 3621,
+        "y": -393,
+        "w": 835,
+        "h": 1415
+      }
+    ],
+    "sizes": {
+      "eye3": [
+        700,
+        490
+      ],
+      "osa": [
+        397,
+        331
+      ],
+      "ana0": [
+        268,
+        192
+      ],
+      "ana1": [
+        264,
+        181
+      ],
+      "ana2": [
+        260,
+        179
+      ],
+      "ana3": [
+        257,
+        190
+      ]
+    }
+  }
+}

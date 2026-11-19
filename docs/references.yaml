@@ -1,0 +1,215 @@
+# Sources cited by docs/model/*.md and shown in the browser math panels.
+#
+# Rules (docs/architecture.md, Section 5.2):
+# - Link to official sources only (standards bodies, DOIs, IEEE 802 public archive).
+# - Never host copies of standards or datasheets.
+# - `access`: free | paywalled | registration
+# - `url: null` where no stable public catalog URL has been verified yet.
+# - `checked`: date the URL was last verified to resolve.
+
+- id: ieee-802.3
+  title: "IEEE Std 802.3 – Ethernet (Clauses 121, 138: PAM-4 optical PMDs, TDECQ, reference receiver)"
+  type: standard
+  url: https://standards.ieee.org/ieee/802.3/10422/
+  access: free
+  checked: 2026-11-11
+  used_by: [bessel-thomson, driver, eye-diagram, ffe, pam4-analysis, pin, prbs-pattern, tdecq, vcsel]
+  note: "IEEE 802.3-2022 catalog page. Available at no cost through the IEEE GET Program (registration)."
+
+- id: ieee-10g-link-model
+  title: "D. Hanson, D. Cunningham, P. Dawe, D. Dolfi, '10G Ethernet link model', spreadsheet 10GEPBud3_1_16a.xls (IEEE P802.3ae D3.2/3.3), 2001"
+  type: tool
+  url: https://www.ieee802.org/3/ae/public/adhoc/serial_pmd/documents/10GEPBud3_1_16a.xls
+  access: free
+  checked: 2026-11-12
+  used_by: [custom-fiber, driver, pam4-analysis, vcsel]
+  note: "The public IEEE 802.3 link model spreadsheet; its ISI penalty is the reference of validation V14a (docs/validation.md, Section 2)."
+
+- id: dawe-link-model-2001
+  title: "P. Dawe, 'The 10G Ethernet Link Model', IEEE 802.3ah, September 2001"
+  type: contribution
+  url: https://grouper.ieee.org/groups/802/3/efm/public/sep01/dawe_1_0901.pdf
+  access: free
+  checked: 2026-11-12
+  used_by: [custom-fiber]
+  note: "Introduction to the link model spreadsheet: physical effects, Gaussian rise-time model, penalties."
+
+- id: ieee-802.3db-fiber-emulation
+  title: "R. Murty, D. Dolfi, 'Baseline proposal for 100 Gb/s per lane optical PMDs supporting 50 and 100 m OM4 MMF', IEEE P802.3db, Dec. 2020; R. Murty, 'On TDECQ and overshoot specifications', IEEE P802.3db, Sept. 2021"
+  type: contribution
+  url: https://www.ieee802.org/3/db/public/adhoc/presentations/murty_3db_adhoc_01a_121720.pdf
+  access: free
+  checked: 2026-11-13
+  used_by: [custom-fiber, mmf, tdecq]
+  note: "TDECQ fiber emulation bandwidths (Table 167-12: 18.0 GHz at 100 m, 33.6 GHz at 50 m, in murty_3db_01a_092321) and their derivation; reference of validation V14b."
+
+- id: king-mmf-effective-bandwidth-2018
+  title: "J. King, 'Channel wavelength ranges for 400GBASE-SR4.2: OM3 and OM4 effective bandwidth, modal and chromatic dispersion included', IEEE 802.3cm ad hoc, June 2018"
+  type: contribution
+  url: https://www.ieee802.org/3/cm/public/adhoc/king_3cm_adhoc_01_062818.pdf
+  access: free
+  checked: 2026-11-13
+  used_by: [mmf]
+  note: "Effective bandwidth BW_eff = (EMB^-2 + BW_cd^-2)^-1/2 used for the 802.3db fiber emulation."
+
+- id: ghiasi-53gbd-tdecq
+  title: "A. Ghiasi, A. Nachum, R. Bemra, '53 Gbaud VCSEL MMF system measurements', IEEE P802.3db, Sept. 2021"
+  type: contribution
+  url: https://www.ieee802.org/3/db/public/September-09-September-29-2021/ghiasi_802.3db_01_092321.pdf
+  access: free
+  checked: 2026-11-13
+  used_by: [tdecq]
+  note: "Measured TDECQ of 53 GBd VCSEL links (50 and 100 m), with fiber emulation filters of Table 167-12."
+
+- id: dawe-tdecq-2018
+  title: "P. Dawe, 'Completing the family of TDECQ-related specifications', IEEE 802.3cd, July 2018"
+  type: contribution
+  url: https://grouper.ieee.org/groups/802/3/cd/public/July18/dawe_3cd_01b_0718.pdf
+  access: free
+  checked: 2026-11-09
+  used_by: [tdecq]
+
+- id: ieee-tdecq-thresholds
+  title: "J. King, IEEE 802.3bs contribution on TDECQ with fixed thresholds Pave, Pave ± OMA/3, May 2016"
+  type: contribution
+  url: https://www.ieee802.org/3/bs/public/16_05/king_3bs_01a_0516.pdf
+  access: free
+  checked: 2026-11-09
+  used_by: [tdecq]
+
+- id: ieee-802.3bs-d31-tdecq
+  title: "IEEE P802.3bs D3.1 (Jan. 2017), 121.8.4 OMAouter and 121.8.5 TDECQ, draft text in J. King, king_03_0217_smf, P802.3bs SMF ad hoc, Feb. 2017"
+  type: contribution
+  url: https://www.ieee802.org/3/bs/public/adhoc/smf/17_02_14/king_03_0217_smf.pdf
+  access: free
+  checked: 2026-11-11
+  used_by: [tdecq]
+  note: "OMAouter over the central 2 UI of a run of 7 threes and 6 zeros; histograms, cumulative probabilities, Gth, σ_G iteration, Ceq. Basis of the independent TDECQ oracle (V19)."
+
+- id: king-tdecq-eq-optimization-2017
+  title: "J. King, 'TDECQ update: noise treatment and equalizer optimization', P802.3bs SMF ad hoc, Feb. 2017"
+  type: contribution
+  url: https://www.ieee802.org/3/bs/public/adhoc/smf/17_02_14/king_02_0217_smf.pdf
+  access: free
+  checked: 2026-11-11
+  used_by: [tdecq]
+  note: "Equalizer optimized for the added noise (not MMSE); Keysight's MMSE approximation within about 0.2 dB."
+
+- id: king-tdecq-time-center-2017
+  title: "J. King, 'TDECQ, optimizing the time center of eye', IEEE 802.3bs, Sept. 2017"
+  type: contribution
+  url: https://www.ieee802.org/3/bs/public/17_09/king_3bs_01a_0917.pdf
+  access: free
+  checked: 2026-11-11
+  used_by: [tdecq]
+  note: "The 0.45/0.55 UI histogram pair may be shifted (e.g. to minimize TDECQ), keeping 0.1 UI spacing."
+
+- id: tia-492aaad
+  title: "TIA-492AAAD – Detail specification for 850-nm laser-optimized 50-µm core multimode fiber (OM4)"
+  type: standard
+  url: null
+  access: paywalled
+  used_by: [mmf]
+  note: "Key numbers used here: EMB ≥ 4700 MHz·km and OFL bandwidth ≥ 3500 MHz·km at 850 nm; core 50 µm, NA 0.200."
+
+- id: tia-455-220
+  title: "TIA-455-220 (FOTP-220) – Differential mode delay measurement of multimode fiber"
+  type: standard
+  url: null
+  access: paywalled
+  used_by: [custom-fiber]
+
+- id: iec-61280-4-1
+  title: "IEC 61280-4-1 – Installed cabling plant: multimode attenuation measurement (encircled flux)"
+  type: standard
+  url: null
+  access: paywalled
+  used_by: [connector]
+
+- id: fleming-1984
+  title: "J. W. Fleming, 'Dispersion in GeO2–SiO2 glasses', Applied Optics 23(24), 4486–4493, 1984"
+  type: paper
+  url: https://doi.org/10.1364/AO.23.004486
+  access: paywalled
+  checked: 2026-11-13
+  used_by: [custom-fiber]
+  note: "Sellmeier coefficients of GeO2 glass and linear interpolation with the GeO2 mole fraction (eq:material-germania)."
+
+- id: malitson-1965
+  title: "I. H. Malitson, 'Interspecimen comparison of the refractive index of fused silica', J. Opt. Soc. Am. 55, 1205 (1965)"
+  type: paper
+  url: https://doi.org/10.1364/JOSA.55.001205
+  access: paywalled
+  checked: 2026-11-09
+  used_by: [custom-fiber]
+
+- id: gloge-weakly-guiding
+  title: "D. Gloge, 'Weakly guiding fibers', Appl. Opt. 10, 2252 (1971)"
+  type: paper
+  url: https://doi.org/10.1364/AO.10.002252
+  access: paywalled
+  checked: 2026-11-09
+  used_by: [connector, custom-fiber]
+
+- id: gloge-marcatili-1973
+  title: "D. Gloge, E. A. J. Marcatili, 'Multimode theory of graded-core fibers', Bell Syst. Tech. J. 52, 1563 (1973)"
+  type: paper
+  url: https://doi.org/10.1002/j.1538-7305.1973.tb02033.x
+  access: paywalled
+  checked: 2026-11-09
+  used_by: [custom-fiber]
+
+- id: olshansky-keck-1976
+  title: "R. Olshansky, D. B. Keck, 'Pulse broadening in graded-index optical fibers', Appl. Opt. 15, 483 (1976)"
+  type: paper
+  url: https://doi.org/10.1364/AO.15.000483
+  access: paywalled
+  checked: 2026-11-09
+  used_by: [custom-fiber]
+
+- id: coldren-diode-lasers
+  title: "L. A. Coldren, S. W. Corzine, M. L. Mašanović, Diode Lasers and Photonic Integrated Circuits, 2nd ed., Wiley (2012)"
+  type: book
+  url: null
+  access: paywalled
+  used_by: [vcsel]
+
+- id: siegman-lasers
+  title: "A. E. Siegman, Lasers, University Science Books (1986) – Hermite/Laguerre–Gauss modes"
+  type: book
+  url: null
+  access: paywalled
+  used_by: [connector, vcsel]
+
+- id: agrawal-focs
+  title: "G. P. Agrawal, Fiber-Optic Communication Systems, Wiley – receiver noise, PAM detection"
+  type: book
+  url: null
+  access: paywalled
+  used_by: [ffe, pam4-analysis, pin, tia]
+
+- id: keysight-dual-dirac
+  title: "Keysight Technologies, 'Jitter Analysis: The dual-Dirac Model, RJ/DJ, and Q-Scale', white paper 5989-3206EN"
+  type: application-note
+  url: https://www.keysight.com/ie/en/assets/7018-01309/white-papers/5989-3206.pdf
+  access: free
+  checked: 2026-11-11
+  used_by: [driver, pam4-analysis]
+  note: "Dual-Dirac model: TJ(BER) = DJ(δδ) + 2·Q_BER·σ_RJ with the transition density; the reference of validation V16b."
+
+- id: swdm-ieee-ngmmf-2018
+  title: "J. King, '200Gb/s duplex: technical feasibility', IEEE 802.3 NGMMF study group, March 2018"
+  type: contribution
+  url: https://www.ieee802.org/3/NGMMF/public/Mar18/king_NGMMF_01_mar18.pdf
+  access: free
+  checked: 2026-11-16
+  used_by: [bandpass-filter, wdm-demux, wdm-mux]
+  note: "SWDM: 30 nm channel spacing centred at 850, 880, 910 and 940 nm (100G-SWDM4 MSA, 4 × 25 GBd over 100 m OM4)."
+
+- id: tia-568-3-d
+  title: "ANSI/TIA-568.3-D – Optical fiber cabling and components standard"
+  type: standard
+  url: null
+  access: paywalled
+  used_by: [custom-fiber, mmf]
+  note: "Cabled attenuation limits used here: OM5 3.0 dB/km at 850 nm, 2.3 dB/km at 953 nm, 1.5 dB/km at 1300 nm (as quoted by Fluke Networks' fiber knowledge base)."

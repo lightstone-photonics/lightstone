@@ -1,0 +1,13 @@
+/target
+/.venv
+__pycache__/
+*.pyc
+*.so
+.pytest_cache/
+.ipynb_checkpoints/
+/web/node_modules
+/web/dist
+/web/src/lib/wasm/
+
+# Private notes (separate private repo lightstone-photonics/lightstone-internal)
+/internal/

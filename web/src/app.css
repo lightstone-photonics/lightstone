@@ -1,0 +1,21 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: #0a0c12;
+  color: #e6ebf5;
+}
+
+body {
+  margin: 0;
+  padding: 1rem 1.5rem 2rem;
+  /* Full width; the system view limits itself (.narrow in App.svelte). */
+}
+
+a {
+  color: #8cc8ff;
+}
+
+code {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.9em;
+}

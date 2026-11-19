@@ -1,0 +1,1035 @@
+<script>
+  import { SvelteFlow, Background, Controls, MiniMap } from '@xyflow/svelte';
+  import '@xyflow/svelte/dist/style.css';
+  import GraphNode from './GraphNode.svelte';
+  import GraphSymbol from './GraphSymbol.svelte';
+  import FrameNode from './FrameNode.svelte';
+  import ParamEditor from '../ParamEditor.svelte';
+  import MathPanel from '../MathPanel.svelte';
+  import EyeCanvas from '../EyeCanvas.svelte';
+  import Plot from '../Plot.svelte';
+  import FiberZoom from '../FiberZoom.svelte';
+  import FacetCanvas from '../FacetCanvas.svelte';
+  import RunsPanel from './RunsPanel.svelte';
+  import SweepPanel from './SweepPanel.svelte';
+  import { makeRun, newStudy } from './study.js';
+  import { createHistory } from './history.js';
+  import swdm4Example from '../../../../examples/graphs/swdm4-wdm-link.json';
+  import { canvasPNG, svgFile, svgPNG, safe } from './export.js';
+  import { get, set as setPath } from '../params.js';
+  import { GROUPS, LABEL, DOC, SPECS, SWITCHES, ZONES, ZONE_OF, MMF_TYPES, PALETTE_LABEL, badge, display, trace, isFiberPhysics, liveValues, connects, domain, portText } from './catalog.js';
+  import {
+    addNode, autoLayout, autoWire, connect, connectionProblem, disconnect, emptyGraph,
+    ensurePositions, insertSplitter, opticalConflict, positions, removeNode, removeWire, rename, split,
+    addFrame, bbox, convertToCustomFiber, duplicateFrame, frames, inFrame, nodeSizes, normalizeKinds, removeFrame, zoneFrames,
+  } from './model.js';
+
+  /**
+   * Browser graph editor (docs/architecture.md, Section 7.9).
+   * graph: the graph JSON document (bindable, kept by the parent across tab switches).
+   */
+  let { engine, kinds, reference, engineVersion = '', fiberPresets = null, docs, graph = $bindable(), study = $bindable() } = $props();
+
+  const AUTOSAVE = 'lightstone.graph-editor.v1';
+  let live = $state(true); // re-run on every change
+  let stale = $state(false); // graph changed since the last run (live off)
+  let withData = $state(true); // record eyes and signal previews with a run
+  let inspW = $state(440); // inspector width [px]
+  let facetKind = $state(0); // 0 launch beam, 1 guided intensity, 2 mode field
+  let facetMode = $state(0);
+  const EXTENT = 32e-6;
+
+  const nodeTypes = { component: GraphNode, frame: FrameNode };
+  const FRAME = 'frame:'; // prefix of frame node ids on the canvas
+  const kindInfo = $derived(Object.fromEntries(kinds.map((k) => [k.kind, k])));
+
+  let nodes = $state.raw([]);
+  let edges = $state.raw([]);
+  let selected = $state(null); // node id
+  let selectedFrame = $state(null); // frame id
+  let result = $state(null); // { summary, ports, eyes, previews }
+  let status = $state('');
+  let runs = $state(0); // completed runs (lets tests wait for a result)
+  let message = $state('');
+  let view = $state(0); // remount key: re-fit the view after loading a graph
+  let paramsText = $state('');
+  let paramsError = $state('');
+  let renameError = $state('');
+  let fileInput;
+  let menuOpen = $state(false);
+  let saveName = $state('lightstone-graph.json'); // suggested file name for Save
+
+  // Undo/redo: snapshots of the graph document, recorded by autosave. Repeated edits of one
+  // control (a slider drag, typing a label) within 400 ms are one step; `editKey` names it.
+  const history = createHistory({ limit: 100, settleMs: 400 });
+  let editKey = null;
+  let canUndo = $state(false);
+  let canRedo = $state(false);
+  const syncHistory = () => ([canUndo, canRedo] = [history.canUndo(), history.canRedo()]);
+
+  /** Example graphs of the menu (examples/graphs/*.json and the engine's reference link). */
+  const EXAMPLES = [
+    { id: 'reference', label: 'Reference link', note: 'PAM-4 53 GBd, 100 m OM4, 5-tap FFE', graph: () => reference },
+    { id: 'swdm4-wdm-link', label: 'SWDM4 WDM link', note: '4 × 850–940 nm, 100 m OM5, eye diagram per channel', graph: () => swdm4Example },
+  ];
+
+  const portsOf = (n) => result?.ports?.[n.id] ?? kindInfo[n.kind] ?? { inputs: [], outputs: [] };
+  const ports = $derived(Object.fromEntries((graph?.nodes ?? []).map((n) => [n.id, portsOf(n)])));
+  const reports = $derived(result?.summary?.ok ? result.summary.reports : {});
+  // Summary of every output port from the last run: { node: { port: summary } }.
+  const portValues = $derived(result?.summary?.ok ? (result.summary.ports ?? {}) : {});
+  const issues = $derived(result?.summary?.issues ?? []);
+  const warnings = $derived(result?.summary?.warnings ?? []);
+  const node = $derived(graph?.nodes.find((n) => n.id === selected) ?? null);
+
+  // ---- graph ↔ flow ------------------------------------------------------------------------
+  /** Measured node sizes from the canvas (for frame bounds). */
+  function sizes() {
+    return Object.fromEntries(nodes.filter((n) => n.measured?.width).map((n) => [n.id, [n.measured.width, n.measured.height]]));
+  }
+
+  function onresize(fid, p) {
+    const f = frames(graph).find((x) => `${FRAME}${x.id}` === fid);
+    if (!f) return;
+    Object.assign(f, { x: Math.round(p.x), y: Math.round(p.y), w: Math.round(p.width), h: Math.round(p.height) });
+    autosave();
+  }
+
+  /** A node was resized on the canvas: keep its size (and position, for top/left handles). */
+  function onsize(id, p) {
+    nodeSizes(graph)[id] = [Math.round(p.width), Math.round(p.height)];
+    positions(graph)[id] = [Math.round(p.x), Math.round(p.y)];
+    rebuild();
+    autosave();
+  }
+  /** Back to the natural size. */
+  function resetSize(id) {
+    delete nodeSizes(graph)[id];
+    rebuild();
+    autosave();
+  }
+
+  function rebuild() {
+    if (!graph) return;
+    const pos = positions(graph);
+    const sz = nodeSizes(graph);
+    const frameNodes = frames(graph).map((f) => ({
+      id: `${FRAME}${f.id}`,
+      type: 'frame',
+      position: { x: f.x, y: f.y },
+      width: f.w,
+      height: f.h,
+      zIndex: -1,
+      selected: f.id === selectedFrame,
+      data: { label: f.label, onresize },
+    }));
+    const issueOf = (id) => issues.find((i) => i.node === id)?.message ?? '';
+    const warnOf = (id) => warnings.find((w) => w.node === id)?.message ?? '';
+    nodes = [...frameNodes, ...graph.nodes.map((n) => ({
+      id: n.id,
+      type: 'component',
+      position: { x: pos[n.id]?.[0] ?? 0, y: pos[n.id]?.[1] ?? 0 },
+      ...(sz[n.id] ? { width: sz[n.id][0], height: sz[n.id][1] } : {}),
+      selected: n.id === selected,
+      data: {
+        sized: !!sz[n.id],
+        onsize,
+        display: display(n.kind, n.params ?? {}, reports[n.id]),
+        kind: n.kind,
+        fiberType: n.kind === 'mmf' ? (n.params?.type ?? 'om4') : null,
+        label: LABEL[n.kind] ?? n.kind,
+        inputs: ports[n.id].inputs,
+        outputs: ports[n.id].outputs,
+        badge: badge(n.kind, n.params ?? {}, reports[n.id]),
+        eye: n.kind === 'eye_diagram' && reports[n.id] ? { counts: result?.eyes?.[n.id], meta: reports[n.id] } : null,
+        trace: trace(n.kind, reports[n.id]),
+        issue: issueOf(n.id),
+        warning: warnOf(n.id),
+      },
+    }))];
+    const badWire = new Set(issues.filter((i) => i.wire !== null && i.wire !== undefined).map((i) => i.wire));
+    edges = graph.wires.map((w, i) => {
+      const [s, sp] = split(w.from);
+      const [t, tp] = split(w.to);
+      const o = ports[s]?.outputs.find((p) => p.name === sp);
+      const d = o ? domain(o.type) : 'unknown';
+      const value = portText(portValues[s]?.[sp]);
+      return {
+        id: `${w.from}>${w.to}`,
+        source: s,
+        sourceHandle: sp,
+        target: t,
+        targetHandle: tp,
+        class: `wire ${d}${badWire.has(i) ? ' bad' : ''}`,
+        ariaLabel: `Wire from ${w.from} to ${w.to}${value ? `: ${value}` : ''}`,
+        data: { value },
+      };
+    });
+  }
+
+  // ---- running -----------------------------------------------------------------------------
+  // Hovering a wire shows the value at its source port from the last run.
+  let wireTip = $state(null); // { x, y, from, text } relative to the canvas section
+  function wireEnter({ edge, event }) {
+    const text = edge.data?.value;
+    const box = event.currentTarget?.closest?.('.canvas') ?? event.target?.closest?.('.canvas');
+    if (!text || !box) return;
+    const r = box.getBoundingClientRect();
+    wireTip = { x: event.clientX - r.left + 12, y: event.clientY - r.top + 12, from: `${edge.source}.${edge.sourceHandle}`, text };
+  }
+
+  async function run() {
+    if (!graph) return;
+    rebuild();
+    const previews = node ? portsOf(node).outputs.map((p) => ({ node: node.id, port: p.name })) : [];
+    const fnode = fiberNodeOf(node);
+    const fiberReq = fnode ? { node: fnode, kind: facetKind, mode: facetMode, n: 160, extent: EXTENT } : null;
+    status = 'Running…';
+    try {
+      const total = graph.nodes.length; // node count of the graph as sent
+      const r = await engine.graph($state.snapshot(graph), previews, fiberReq);
+      if (!r) return; // superseded
+      result = { summary: r.summary, ports: r.ports, eyes: r.eyes, previews: r.previews, fiber: r.fiber };
+      const s = r.summary;
+      status = s.ok
+        ? `Computed ${s.computed} of ${total} nodes in ${s.ms.toFixed(0)} ms` + (s.warnings.length ? ` · ${s.warnings.length} warning(s)` : '')
+        : `Not simulated: ${s.issues.length} problem(s), see the list below.`;
+      stale = false;
+      rebuild();
+      runs++;
+    } catch (e) {
+      status = `Error: ${e.message ?? e}`;
+    }
+  }
+
+  function autosave() {
+    const json = JSON.stringify($state.snapshot(graph));
+    history.record(json, editKey);
+    editKey = null;
+    syncHistory();
+    try {
+      localStorage.setItem(AUTOSAVE, json);
+    } catch {
+      /* storage full or disabled: autosave is best effort */
+    }
+  }
+
+  /** After an edit: autosave, then re-run (live) or mark the results as stale. */
+  function changed() {
+    autosave();
+    if (live) run();
+    else {
+      stale = true;
+      status = 'Changed – press Run to simulate.';
+      rebuild();
+    }
+  }
+
+  /** Run now and record the result in the run list. */
+  async function record() {
+    await run();
+    if (!result?.summary) return;
+    const n = study.runs.length + 1;
+    study.runs.push(
+      makeRun($state.snapshot(graph), result.summary, {
+        label: `Run ${n}`,
+        eyes: withData ? result.eyes : undefined,
+        previews: withData ? result.previews : undefined,
+      })
+    );
+    message = `Recorded run ${n}${result.summary.ok ? '' : ' (invalid graph: problems recorded, no results)'}.`;
+  }
+
+  function load(g, fit = true) {
+    graph = normalizeKinds(g);
+    graph.layout ??= {};
+    const hadLayout = !!graph.layout.positions && Object.keys(graph.layout.positions).length > 0;
+    ensurePositions(graph);
+    // Graphs without a layout (presets, Python files) get the system-view zones as frames.
+    if (!hadLayout && !graph.layout.frames) zoneFrames(graph, (k) => ZONE_OF[k], ZONES);
+    selected = null;
+    result = null;
+    if (fit) view++;
+    changed();
+  }
+
+  $effect.pre(() => {
+    study ??= newStudy({ name: 'lightstone-web', engine: engineVersion });
+    if (graph) return;
+    let saved = null;
+    try {
+      saved = JSON.parse(localStorage.getItem(AUTOSAVE) ?? 'null');
+    } catch {
+      saved = null;
+    }
+    if (saved?.nodes?.length) {
+      load(saved);
+      message = 'Restored your last graph (autosaved in this browser).';
+    } else load(JSON.parse(JSON.stringify(reference)));
+  });
+
+  // ---- canvas events -----------------------------------------------------------------------
+  function onconnect(c) {
+    const from = `${c.source}.${c.sourceHandle}`;
+    const to = `${c.target}.${c.targetHandle}`;
+    const problem = connectionProblem(graph, ports, from, to);
+    if (problem) {
+      message = problem;
+      rebuild();
+      return;
+    }
+    const other = opticalConflict(graph, ports, from, to);
+    if (other) {
+      if (confirm(`Light cannot be copied: ${from} already feeds ${other}. Insert a 1×2 splitter?`)) {
+        const id = insertSplitter(graph, from, other, to, kindInfo.splitter.params);
+        message = `Inserted splitter "${id}".`;
+      } else {
+        message = 'Not connected: an optical output can feed only one component (use a splitter, or a monitor input).';
+        rebuild();
+        return;
+      }
+    } else {
+      connect(graph, from, to);
+      message = '';
+    }
+    changed();
+  }
+  const isValidConnection = (c) =>
+    !connectionProblem(graph, ports, `${c.source}.${c.sourceHandle}`, `${c.target}.${c.targetHandle}`);
+
+  function ondelete({ nodes: ns, edges: es }) {
+    for (const n of ns) {
+      if (n.id.startsWith(FRAME)) {
+        removeFrame(graph, n.id.slice(FRAME.length));
+        if (selectedFrame === n.id.slice(FRAME.length)) selectedFrame = null;
+      } else removeNode(graph, n.id);
+    }
+    for (const e of es) removeWire(graph, `${e.source}.${e.sourceHandle}`, `${e.target}.${e.targetHandle}`);
+    if (ns.some((n) => n.id === selected)) selected = null;
+    changed();
+  }
+  // Dragging a frame carries the nodes inside it along.
+  let carry = null; // { frame, x0, y0, members: { id: [x, y] } }
+  function onnodedragstart({ targetNode: t }) {
+    if (!t?.id.startsWith(FRAME)) return (carry = null);
+    const f = frames(graph).find((x) => `${FRAME}${x.id}` === t.id);
+    const pos = positions(graph);
+    carry = { x0: t.position.x, y0: t.position.y, members: Object.fromEntries(inFrame(graph, f, sizes()).map((id) => [id, [...pos[id]]])) };
+  }
+  function onnodedrag({ targetNode: t }) {
+    if (!carry || !t?.id.startsWith(FRAME)) return;
+    const [dx, dy] = [t.position.x - carry.x0, t.position.y - carry.y0];
+    nodes = nodes.map((n) => (carry.members[n.id] ? { ...n, position: { x: carry.members[n.id][0] + dx, y: carry.members[n.id][1] + dy } } : n));
+  }
+  function onnodedragstop({ nodes: moved }) {
+    const pos = positions(graph);
+    for (const n of moved) {
+      if (n.id.startsWith(FRAME)) {
+        const f = frames(graph).find((x) => `${FRAME}${x.id}` === n.id);
+        if (f) [f.x, f.y] = [Math.round(n.position.x), Math.round(n.position.y)];
+      } else pos[n.id] = [Math.round(n.position.x), Math.round(n.position.y)];
+    }
+    if (carry) for (const n of nodes) if (carry.members[n.id]) pos[n.id] = [Math.round(n.position.x), Math.round(n.position.y)];
+    carry = null;
+    autosave();
+  }
+  function selectFrame(fid) {
+    selected = null;
+    selectedFrame = fid;
+    rebuild();
+  }
+  function frameAround() {
+    const ids = nodes.filter((n) => n.selected && !n.id.startsWith(FRAME)).map((n) => n.id);
+    const box = bbox(graph, ids.length ? ids : selected ? [selected] : [], sizes()) ?? [0, 0, 400, 200];
+    selectFrame(addFrame(graph, 'Frame', box));
+    message = ids.length ? `Framed ${ids.length} node(s).` : 'Added a frame; drag and resize it.';
+    autosave();
+  }
+  function zoneFramesNow() {
+    zoneFrames(graph, (k) => ZONE_OF[k], ZONES, sizes());
+    selectedFrame = null;
+    message = 'Frames for the zones Transmitter, Channel, Receiver front end and Data recovery.';
+    rebuild();
+    autosave();
+  }
+  function fitFrame(f) {
+    const box = bbox(graph, inFrame(graph, f, sizes()), sizes());
+    if (box) [f.x, f.y, f.w, f.h] = box.map(Math.round);
+    rebuild();
+    autosave();
+  }
+
+  function select(id) {
+    selectedFrame = null;
+    const n = graph.nodes.find((x) => x.id === id);
+    if (n) ensureParams(n);
+    selected = id;
+    paramsText = node ? JSON.stringify(node.params ?? {}, null, 2) : '';
+    paramsError = '';
+    renameError = '';
+    // Previews of the new selection: a cheap cached re-run, unless the graph has pending changes.
+    if (live || !stale) run();
+    else rebuild();
+  }
+
+  // ---- editing -----------------------------------------------------------------------------
+  function add(kind) {
+    const info = kindInfo[kind];
+    const pos = positions(graph);
+    const anchor = selected && pos[selected];
+    const maxX = Math.max(0, ...Object.values(pos).map((p) => p[0]));
+    const at = anchor ? [anchor[0] + 280, anchor[1]] : [maxX + 280, 0];
+    const wire = selected ? autoWire(graph, ports, selected, info) : null;
+    const id = addNode(graph, kind, info.params, at);
+    if (wire) connect(graph, wire.from, `${id}.${wire.input}`);
+    // Analyzers and the FFE need the transmitted symbols: wire the only pattern source.
+    if (info.inputs.some((p) => p.name === 'ref')) {
+      const srcs = graph.nodes.filter((n) => n.kind === 'prbs13q');
+      if (srcs.length === 1) connect(graph, `${srcs[0].id}.out`, `${id}.ref`);
+    }
+    message = wire ? `Added ${LABEL[kind]} "${id}" after "${selected}".` : `Added ${LABEL[kind]} "${id}". Wire it on the canvas or in the inspector.`;
+    autosave(); // also records the step for undo
+    select(id);
+  }
+  // Multimode presets: the sliders show the preset's physics; changing it converts the node to a
+  // custom fiber (with "Back to OMx").
+  let undoConvert = $state(null); // { id, kind, params, type } of the last conversion
+  const presetOf = (n) => fiberPresets?.types?.[n.params?.type ?? 'om4'];
+  const sliderTarget = $derived(node?.kind === 'mmf' ? { ...(presetOf(node) ?? {}), ...node.params } : node?.params);
+  function onParam(path, value) {
+    if (node.kind === 'mmf' && isFiberPhysics(path, value) && presetOf(node)) {
+      const type = node.params?.type ?? 'om4';
+      undoConvert = { id: node.id, type, ...convertToCustomFiber(graph, node.id, presetOf(node)) };
+      message = `Converted the ${type.toUpperCase()} preset to a custom fiber: its physics changed.`;
+    }
+    setPath(node.params, path, value);
+    paramsText = JSON.stringify(node.params, null, 2);
+    editKey = `param:${node.id}:${path}`;
+    changed();
+  }
+  /** Nested parameter objects (e.g. vcsel.wavelength) may be missing in hand-written graphs. */
+  function ensureParams(n) {
+    n.params ??= {};
+    // A multimode preset owns no nested physics objects (they would make it invalid).
+    if (n.kind === 'mmf') return;
+    for (const sp of SPECS[n.kind] ?? []) {
+      let o = n.params;
+      for (const k of sp.path.split('.').slice(0, -1)) o = o[k] ??= {};
+    }
+  }
+  function setSwitch(key, v) {
+    node.params[key] = v;
+    paramsText = JSON.stringify(node.params, null, 2);
+    changed();
+  }
+  function applyParams() {
+    try {
+      const p = JSON.parse(paramsText);
+      if (typeof p !== 'object' || Array.isArray(p) || p === null) throw new Error('parameters must be a JSON object');
+      node.params = p;
+      paramsError = '';
+      changed();
+    } catch (e) {
+      paramsError = String(e.message ?? e);
+    }
+  }
+  function doRename(v) {
+    const old = selected;
+    renameError = rename(graph, old, v.trim());
+    if (!renameError) {
+      selected = v.trim();
+      changed();
+    }
+  }
+  function wireInput(port, from) {
+    const to = `${node.id}.${port}`;
+    if (!from) disconnect(graph, to);
+    else {
+      const other = opticalConflict(graph, ports, from, to);
+      if (other) {
+        message = `${from} already feeds ${other}. Insert a splitter (drag the wire on the canvas to be offered one).`;
+        return;
+      }
+      connect(graph, from, to);
+    }
+    changed();
+  }
+  const sourceOf = (port) => graph.wires.find((w) => w.to === `${node.id}.${port}`)?.from ?? '';
+  const candidates = (inp) =>
+    graph.nodes
+      .filter((n) => n.id !== node.id)
+      .flatMap((n) => ports[n.id].outputs.filter((o) => connects(o.type, inp.type)).map((o) => `${n.id}.${o.name}`));
+  function removeSelected() {
+    removeNode(graph, selected);
+    selected = null;
+    changed();
+  }
+
+  // ---- undo / redo -------------------------------------------------------------------------
+  /** Put a recorded snapshot back (keeps the view and, if it still exists, the selection). */
+  function restore(json) {
+    if (json == null) return;
+    graph = JSON.parse(json);
+    if (selected && !graph.nodes.some((n) => n.id === selected)) selected = null;
+    if (selectedFrame && !(graph.layout?.frames ?? []).some((f) => f.id === selectedFrame)) selectedFrame = null;
+    undoConvert = null;
+    changed();
+  }
+  function undo() {
+    restore(history.undo());
+    syncHistory();
+    message = canUndo ? 'Undone.' : 'Undone (nothing more to undo).';
+  }
+  function redo() {
+    restore(history.redo());
+    syncHistory();
+    message = 'Redone.';
+  }
+  function onkey(e) {
+    const t = e.target;
+    if (t?.closest?.('input, textarea, select, [contenteditable="true"]')) return; // native text undo
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey && canUndo) { e.preventDefault(); undo(); }
+    else if (((k === 'z' && e.shiftKey) || k === 'y') && canRedo) { e.preventDefault(); redo(); }
+  }
+
+  // ---- files and presets -------------------------------------------------------------------
+  function loadExample(ex) {
+    menuOpen = false;
+    load(JSON.parse(JSON.stringify(ex.graph())));
+    saveName = `${ex.id}.json`;
+    message = `Example loaded: ${ex.label}. Undo goes back to your previous graph.`;
+  }
+  /**
+   * Save the graph as a JSON file. Where the browser supports it (Chromium: File System Access
+   * API) a save dialog asks for folder and name; elsewhere the name is asked for and the file
+   * goes to the browser's download folder (browsers do not let pages choose other folders).
+   */
+  async function save() {
+    menuOpen = false;
+    const pos = positions(graph);
+    for (const n of nodes) pos[n.id] = [Math.round(n.position.x), Math.round(n.position.y)];
+    const text = JSON.stringify($state.snapshot(graph), null, 2);
+    if (typeof window.showSaveFilePicker === 'function') {
+      try {
+        const h = await window.showSaveFilePicker({
+          suggestedName: saveName,
+          types: [{ description: 'Lightstone graph (JSON)', accept: { 'application/json': ['.json'] } }],
+        });
+        const w = await h.createWritable();
+        await w.write(text);
+        await w.close();
+        saveName = h.name;
+        message = `Saved ${h.name}.`;
+      } catch (e) {
+        if (e?.name !== 'AbortError') message = `Could not save: ${e.message ?? e}`;
+      }
+      return;
+    }
+    let name = prompt('File name (this browser saves to its download folder):', saveName);
+    if (name === null) return;
+    name = name.trim() || saveName;
+    if (!/\.json$/i.test(name)) name += '.json';
+    const blob = new Blob([text], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    saveName = name;
+    message = `Saved ${name} to the download folder.`;
+  }
+  async function openFile(ev) {
+    const input = ev.currentTarget; // gone after the first await
+    const f = input.files?.[0];
+    if (!f) return;
+    try {
+      const g = JSON.parse(await f.text());
+      if (!Array.isArray(g.nodes) || !Array.isArray(g.wires ?? [])) throw new Error('not a Lightstone graph (needs "nodes" and "wires")');
+      g.wires ??= [];
+      g.settings ??= {};
+      load(g);
+      saveName = f.name;
+      message = `Loaded ${f.name}.`;
+    } catch (e) {
+      message = `Could not load ${f.name}: ${e.message ?? e}`;
+    }
+    input.value = ''; // allow reopening the same file
+  }
+  function relayout() {
+    autoLayout(graph);
+    zoneFrames(graph, (k) => ZONE_OF[k], ZONES);
+    view++;
+    rebuild();
+    autosave();
+  }
+
+  /** Fiber node shown for the selection: the fiber itself, or the fiber a connector feeds. */
+  function fiberNodeOf(n) {
+    if (!n) return null;
+    if (n.kind === 'mmf' || n.kind === 'custom_fiber') return n.id;
+    if (n.kind === 'connector') {
+      const w = graph.wires.find((x) => x.from === `${n.id}.out`);
+      const t = w && graph.nodes.find((x) => x.id === split(w.to)[0]);
+      return t?.kind === 'mmf' || t?.kind === 'custom_fiber' ? t.id : null;
+    }
+    return null;
+  }
+
+  function loadRun(r) {
+    load(JSON.parse(JSON.stringify(r.graph)));
+    message = `Loaded the graph of “${r.label || r.id}”.`;
+  }
+
+  // ---- inspector width ---------------------------------------------------------------------
+  function dragSplit(ev) {
+    const x0 = ev.clientX;
+    const w0 = inspW;
+    const move = (e) => (inspW = Math.min(900, Math.max(300, w0 - (e.clientX - x0))));
+    const up = () => {
+      removeEventListener('pointermove', move);
+      removeEventListener('pointerup', up);
+    };
+    addEventListener('pointermove', move);
+    addEventListener('pointerup', up);
+  }
+  function keySplit(e) {
+    if (e.key === 'ArrowLeft') inspW = Math.min(900, inspW + 40);
+    else if (e.key === 'ArrowRight') inspW = Math.max(300, inspW - 40);
+    else return;
+    e.preventDefault();
+  }
+
+  // ---- settings ----------------------------------------------------------------------------
+  function setSetting(k, v) {
+    graph.settings[k] = v;
+    changed();
+  }
+
+  // ---- inspector results -------------------------------------------------------------------
+  const liveRows = $derived(node ? liveValues(node.kind, reports[node.id]) : []);
+  const eyeReport = $derived(node?.kind === 'eye_diagram' ? reports[node.id] : null);
+  const eyeCounts = $derived(eyeReport ? result?.eyes?.[node.id] : null);
+  function previewSeries(p) {
+    if (!p) return null;
+    const ui = (i) => i / p.sps;
+    if (p.type === 'electrical') {
+      const scale = p.quantity === 'voltage' ? 1e3 : p.quantity === 'current' ? 1e3 : 1;
+      return {
+        unit: p.quantity === 'voltage' ? 'mV' : p.quantity === 'current' ? 'mA' : 'drive (0…1)',
+        series: [
+          { points: Array.from(p.signal, (v, i) => [ui(i), v * scale]), color: '#5b6478', kind: 'line', label: 'noisy' },
+          { points: Array.from(p.noiseless, (v, i) => [ui(i), v * scale]), color: '#6cb6ff', kind: 'line', label: 'noiseless' },
+        ],
+      };
+    }
+    if (p.type === 'optical') {
+      return { unit: 'mW (detected, all light)', series: [{ points: Array.from(p.power, (v, i) => [ui(i), v * 1e3]), color: '#f08a5d', kind: 'line' }] };
+    }
+    return null;
+  }
+  // A step profile has no α slider.
+  const specsOf = (k) => (SPECS[k] ?? []).filter((sp) => !(sp.path === 'profile.alpha' && node?.params?.profile?.kind === 'step'));
+  const fiberView = $derived(result?.fiber && result.fiber.node === fiberNodeOf(node) ? result.fiber : null);
+  const topModes = $derived(fiberView ? [...fiberView.modes].sort((a, b) => b.launched_power - a.launched_power).slice(0, 10) : []);
+  const facetLabels = ['VCSEL launch intensity at the fiber facet', 'Guided intensity at the span output', 'Selected fiber mode field'];
+  const fmt = (v, d = 2) => (v === null || v === undefined || !isFinite(v) ? '—' : Number(v).toFixed(d));
+</script>
+
+<svelte:window onkeydown={onkey} onclick={(e) => menuOpen && !e.target.closest?.('.menu') && (menuOpen = false)} />
+
+<div class="editor">
+  <div class="toolbar" role="toolbar" aria-label="Graph editor">
+    <div class="menu">
+      <button type="button" class="menubtn" aria-haspopup="menu" aria-expanded={menuOpen} onclick={() => (menuOpen = !menuOpen)}>☰ Menu</button>
+      {#if menuOpen}
+        <div class="dropdown" role="menu" aria-label="File and examples">
+          <button type="button" role="menuitem" onclick={save}>Save graph as…<span class="kbd">JSON file: choose folder and name</span></button>
+          <button type="button" role="menuitem" onclick={() => { menuOpen = false; fileInput.click(); }}>Load graph…<span class="kbd">JSON file</span></button>
+          <button type="button" role="menuitem" onclick={() => { menuOpen = false; load(emptyGraph()); message = 'New empty graph. Undo goes back to your previous graph.'; }}>New empty graph</button>
+          <p class="mhead" role="presentation">Examples</p>
+          {#each EXAMPLES as ex}
+            <button type="button" role="menuitem" onclick={() => loadExample(ex)}>{ex.label}<span class="kbd">{ex.note}</span></button>
+          {/each}
+        </div>
+      {/if}
+    </div>
+    <input bind:this={fileInput} type="file" accept=".json,application/json" class="sr-only" tabindex="-1" aria-hidden="true" onchange={openFile} />
+    <button type="button" onclick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" aria-label="Undo">↶ Undo</button>
+    <button type="button" onclick={redo} disabled={!canRedo} title="Redo (Ctrl+Shift+Z / Ctrl+Y)" aria-label="Redo">↷ Redo</button>
+    <span class="sepv" aria-hidden="true"></span>
+    <button type="button" onclick={relayout}>Auto layout</button>
+    <button type="button" onclick={frameAround} title="Frame the selected nodes (shift-click or drag a box to select several)">+ Frame</button>
+    <button type="button" onclick={zoneFramesNow} title="Replace the frames with the system-view zones">Zone frames</button>
+    <span class="sepv" aria-hidden="true"></span>
+    <button type="button" class="run" onclick={record} title="Simulate and add the result to the run list">▶ Run</button>
+    <label class="tl"><input type="checkbox" bind:checked={live} onchange={() => live && stale && run()} /> Live update</label>
+    <label class="tl"><input type="checkbox" bind:checked={withData} /> Record eyes and waveforms</label>
+  </div>
+  {#if message}<p class="message" role="status">{message}
+    {#if undoConvert && message.startsWith('Converted the')}
+      <button type="button" class="linkbtn" onclick={() => {
+        const n = graph.nodes.find((x) => x.id === undoConvert.id);
+        if (n) { n.kind = undoConvert.kind; n.params = undoConvert.params; message = `Back to the ${undoConvert.type.toUpperCase()} preset.`; undoConvert = null; changed(); }
+      }}>Back to {undoConvert.type.toUpperCase()}</button>
+    {/if}</p>{/if}
+
+  <div class="cols" style="--insp: {inspW}px">
+    <nav class="palette" aria-label="Component palette">
+      <p class="hint">Click to add{selected ? ` after “${selected}”` : ''}.</p>
+      {#each GROUPS as grp}
+        <h3>{grp.name}</h3>
+        {#each grp.kinds as k}
+          {#if kindInfo[k]}
+            <button type="button" class="pal" onclick={() => add(k)} aria-label="Add {LABEL[k]}">
+              <GraphSymbol kind={k} />{PALETTE_LABEL[k] ?? LABEL[k]}
+            </button>
+          {/if}
+        {/each}
+      {/each}
+      <p class="legend">
+        <span class="dot optical"></span>optical <span class="dot electrical"></span>electrical <span class="dot data"></span>data
+      </p>
+    </nav>
+
+    <section class="canvas" aria-label="Graph canvas. Drag from an output port (right) to an input port (left) to wire. Delete removes the selection.">
+      {#key view}
+        <SvelteFlow
+          bind:nodes
+          bind:edges
+          {nodeTypes}
+          colorMode="dark"
+          fitView
+          minZoom={0.2}
+          deleteKey={['Delete', 'Backspace']}
+          {isValidConnection}
+          {onconnect}
+          {ondelete}
+          {onnodedragstop}
+          {onnodedragstart}
+          {onnodedrag}
+          onnodeclick={({ node: n }) => (n.id.startsWith(FRAME) ? selectFrame(n.id.slice(FRAME.length)) : select(n.id))}
+          elevateNodesOnSelect={false}
+          onpaneclick={() => { selectedFrame = null; select(null); }}
+          onedgepointerenter={wireEnter}
+          onedgepointerleave={() => (wireTip = null)}
+          proOptions={{ hideAttribution: false }}
+        >
+          <Background gap={20} />
+          <Controls />
+          <MiniMap pannable zoomable width={150} height={100} />
+        </SvelteFlow>
+      {/key}
+      {#if wireTip}<div class="wiretip" role="tooltip" style="left: {wireTip.x}px; top: {wireTip.y}px">{wireTip.from}: {wireTip.text}</div>{/if}
+      <p class="status" class:stale aria-live="polite" data-runs={runs}>{status}</p>
+    </section>
+
+    <!-- WAI-ARIA window splitter: a focusable separator is interactive (drag or arrow keys). -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
+    <div class="split" role="separator" aria-orientation="vertical" aria-label="Resize the inspector" aria-valuenow={inspW} aria-valuemin="300" aria-valuemax="900" tabindex="0" onpointerdown={dragSplit} onkeydown={keySplit}></div>
+    <aside class="inspector" aria-label="Inspector">
+      {#if selectedFrame && frames(graph).find((f) => f.id === selectedFrame)}
+        {@const f = frames(graph).find((x) => x.id === selectedFrame)}
+        <div class="card">
+          <h2>Frame</h2>
+          <label class="row">Label <input type="text" bind:value={f.label} oninput={() => { rebuild(); editKey = `frame-label:${f.id}`; autosave(); }} /></label>
+          <p class="hint">Contains: {inFrame(graph, f, sizes()).join(', ') || 'no nodes'}. Dragging the frame moves these nodes too; drag its corners to resize.</p>
+          <button type="button" onclick={() => fitFrame(f)}>Fit to its nodes</button>
+          <button type="button" onclick={() => { const id = duplicateFrame(graph, f.id, sizes()); selectFrame(id); message = 'Duplicated the frame and its nodes (new noise seeds); wires from outside feed the copy too.'; changed(); }}>Duplicate (e.g. another lane)</button>
+          <button type="button" class="danger" onclick={() => { removeFrame(graph, f.id); selectedFrame = null; rebuild(); autosave(); }}>Remove frame</button>
+        </div>
+      {:else if node}
+        {@const info = portsOf(node)}
+        <div class="card">
+          <h2>{LABEL[node.kind] ?? node.kind} <span class="tag">{kindInfo[node.kind]?.linear ? 'linear' : 'nonlinear / sink'}</span></h2>
+          <label class="row">Node id
+            <input type="text" value={node.id} onchange={(e) => doRename(e.currentTarget.value)} aria-describedby="rename-err" />
+          </label>
+          {#if renameError}<p id="rename-err" class="err">{renameError}</p>{/if}
+
+          {#if specsOf(node.kind).length}
+            {#key node.id}
+              <ParamEditor specs={specsOf(node.kind)} target={sliderTarget} idPrefix="g-{node.id}" onchange={onParam} />
+            {/key}
+          {/if}
+          {#each SWITCHES[node.kind] ?? [] as [key, lab]}
+            <label class="check"><input type="checkbox" checked={!!node.params[key]} onchange={(e) => setSwitch(key, e.currentTarget.checked)} /> {lab}</label>
+          {/each}
+          {#if node.kind === 'mmf'}
+            <label class="row">Fiber type
+              <select value={node.params.type ?? 'om4'} onchange={(e) => setSwitch('type', e.currentTarget.value)}>
+                {#each MMF_TYPES as t}<option value={t}>{t.toUpperCase()} (minimum spec)</option>{/each}
+              </select>
+            </label>
+            <p class="hint">Preset: only length, attenuation (≤ 3.5 dB/km) and extra loss belong to it. Changing any other slider converts it to a custom fiber.</p>
+          {/if}
+          {#if node.kind === 'custom_fiber'}
+            <label class="row">Profile
+              <select value={node.params.profile?.kind ?? 'graded'} onchange={(e) => setSwitch('profile', e.currentTarget.value === 'step' ? { kind: 'step' } : { kind: 'graded', alpha: node.params.profile?.alpha ?? 2.0777 })}>
+                <option value="graded">graded index (α)</option>
+                <option value="step">step index</option>
+              </select>
+            </label>
+            <label class="row">Core glass
+              <select value={node.params.core_material ?? 'germania_doped'} onchange={(e) => setSwitch('core_material', e.currentTarget.value)}>
+                <option value="germania_doped">germania-doped silica</option>
+                <option value="fixed_delta">fixed Δ (pure silica, ≤ v0.11)</option>
+              </select>
+            </label>
+          {/if}
+          {#if node.kind === 'prbs13q'}
+            <label class="row">Modulation
+              <select value={node.params.levels ?? 4} onchange={(e) => setSwitch('levels', Number(e.currentTarget.value))}>
+                <option value={4}>PAM-4 (PRBS13Q)</option>
+                <option value={2}>NRZ (PRBS13)</option>
+              </select>
+            </label>
+          {/if}
+          {#if node.kind === 'tia'}
+            <label class="check"><input type="checkbox" checked={!!node.params.clip}
+              onchange={(e) => setSwitch('clip', e.currentTarget.checked ? [0.3, 0.6] : null)} /> Output clipping (makes the TIA nonlinear)</label>
+            {#if node.params.clip}
+              <div class="pair">
+                <label>low [V] <input type="number" step="0.01" value={node.params.clip[0]} onchange={(e) => setSwitch('clip', [Number(e.currentTarget.value), node.params.clip[1]])} /></label>
+                <label>high [V] <input type="number" step="0.01" value={node.params.clip[1]} onchange={(e) => setSwitch('clip', [node.params.clip[0], Number(e.currentTarget.value)])} /></label>
+              </div>
+            {/if}
+          {/if}
+          {#if node.kind === 'splitter'}
+            <label class="row">Split ratios
+              <input type="text" value={(node.params.ratios ?? []).join(', ')}
+                onchange={(e) => setSwitch('ratios', e.currentTarget.value.split(',').map((x) => Number(x.trim())).filter((x) => !isNaN(x)))} />
+            </label>
+          {/if}
+          {#if node.kind === 'wdm_mux' || node.kind === 'wdm_demux'}
+            <label class="row">Channels [nm]
+              <input type="text" value={(node.params.channels ?? []).map((x) => +(x * 1e9).toFixed(3)).join(', ')}
+                onchange={(e) => setSwitch('channels', e.currentTarget.value.split(',').map((x) => Number(x.trim())).filter((x) => x > 0).map((x) => x * 1e-9))} />
+            </label>
+          {/if}
+          {#if ['wdm_mux', 'wdm_demux', 'bandpass_filter'].includes(node.kind)}
+            <label class="row"><input type="checkbox" checked={node.params.isolation_db === null}
+              onchange={(e) => setSwitch('isolation_db', e.currentTarget.checked ? null : 30)} /> Ideal (no isolation floor)</label>
+          {/if}
+          {#if node.kind === 'combiner'}
+            <label class="row">Inputs <input type="number" min="2" max="8" value={node.params.inputs ?? 2} onchange={(e) => setSwitch('inputs', Number(e.currentTarget.value))} /></label>
+          {/if}
+          {#if node.kind === 'ffe'}
+            <label class="row">Fixed taps (empty = adapt)
+              <input type="text" value={(node.params.taps ?? []).join(', ')}
+                onchange={(e) => { const t = e.currentTarget.value.split(',').map((x) => x.trim()).filter(Boolean).map(Number); setSwitch('taps', t.length ? t : null); }} />
+            </label>
+          {/if}
+
+          {#if info.inputs.length}
+            <h3>Inputs</h3>
+            {#each info.inputs as inp (inp.name)}
+              <label class="row">{inp.name} <span class="ptype">{inp.type}{inp.monitor ? ', monitor' : ''}</span>
+                <select value={sourceOf(inp.name)} onchange={(e) => wireInput(inp.name, e.currentTarget.value)}>
+                  <option value="">— not connected —</option>
+                  {#each candidates(inp) as c}<option value={c}>{c}</option>{/each}
+                </select>
+              </label>
+            {/each}
+          {/if}
+          {#if info.outputs.length}
+            <h3>Outputs</h3>
+            <ul class="outs">
+              {#each info.outputs as o (o.name)}
+                {@const to = graph.wires.filter((w) => w.from === `${node.id}.${o.name}`).map((w) => w.to)}
+                {@const pv = portValues[node.id]?.[o.name]}
+                <li>{o.name} <span class="ptype">{o.type}</span> → {to.length ? to.join(', ') : 'not connected'}{#if pv}<br /><span class="pval">{portText(pv)}</span>{/if}</li>
+              {/each}
+            </ul>
+          {/if}
+
+          <details>
+            <summary>All parameters (JSON)</summary>
+            <textarea rows="8" bind:value={paramsText} aria-label="Parameters as JSON" spellcheck="false"></textarea>
+            <button type="button" onclick={applyParams}>Apply</button>
+            {#if paramsError}<p class="err">{paramsError}</p>{/if}
+          </details>
+          {#if nodeSizes(graph)[node.id]}<button type="button" onclick={() => resetSize(node.id)}>Reset node size</button>{/if}
+          <button type="button" class="danger" onclick={removeSelected}>Remove node</button>
+        </div>
+
+        {#if eyeReport && eyeCounts}
+          <div class="card">
+            <h2>Eye diagram “{node.id}” <button type="button" class="mini" onclick={(e) => canvasPNG(e.currentTarget.closest('.card').querySelector('canvas'), `eye-${safe(node.id)}.png`)}>PNG</button></h2>
+            <EyeCanvas eye={eyeCounts} meta={eyeReport} analysis={null} label="Eye diagram of node {node.id}" />
+          </div>
+        {/if}
+        {#if fiberView}
+          {@const fv = fiberView}
+          <div class="card">
+            <h2>Fiber facet — {fv.node}</h2>
+            <fieldset class="facetsel">
+              <legend class="sr-only">Facet view</legend>
+              {#each ['Launch beam', 'Guided intensity', 'Mode field'] as lab, k}
+                <label><input type="radio" name="gfacet" value={k} bind:group={facetKind} disabled={k === 0 && !fv.first_span} onchange={() => run()} /> {lab}</label>
+              {/each}
+            </fieldset>
+            {#if facetKind === 2}
+              <label class="row">Mode
+                <select bind:value={facetMode} onchange={() => run()}>
+                  {#each topModes as m}<option value={m.index}>LP{m.l}{m.m} — {(100 * m.launched_power).toFixed(1)} %</option>{/each}
+                </select>
+              </label>
+            {/if}
+            <FacetCanvas image={fv.image} n={fv.n} kind={fv.kind} extent={EXTENT} coreRadius={fv.fiber.core_radius} offset={fv.metrics.offset ?? 0} label={facetLabels[fv.kind]} />
+            {#if fv.group_power.length}
+              <figure class="groups">
+                <figcaption>Power per principal mode group at the span output</figcaption>
+                <div class="bars" role="img" aria-label="Bar chart of power per mode group">
+                  {#each fv.group_power as gp, g}
+                    <div class="bar" style="height: {Math.max(1, (100 * gp) / Math.max(...fv.group_power))}%" title="group {g + 1}: {(100 * gp).toFixed(2)} %"></div>
+                  {/each}
+                </div>
+                <div class="axis"><span>g = 1</span><span>g = {fv.group_power.length}</span></div>
+              </figure>
+            {/if}
+          </div>
+          <div class="card">
+            <h2>Fiber — component view</h2>
+            <FiberZoom summary={fv} />
+          </div>
+        {/if}
+        {#each info.outputs as o (o.name)}
+          {@const pv = previewSeries(result?.previews?.[`${node.id}.${o.name}`])}
+          {#if pv}
+            <div class="card">
+              <h2>Signal at {node.id}.{o.name}
+                <button type="button" class="mini" onclick={(e) => svgFile(e.currentTarget.closest('.card').querySelector('svg'), `signal-${safe(node.id)}-${o.name}.svg`)}>SVG</button>
+                <button type="button" class="mini" onclick={(e) => svgPNG(e.currentTarget.closest('.card').querySelector('svg'), `signal-${safe(node.id)}-${o.name}.png`)}>PNG</button>
+              </h2>
+              <Plot series={pv.series} xlabel="time [UI]" ylabel={pv.unit} width={420} height={180} label="Signal at {node.id}.{o.name} over 32 symbols" />
+            </div>
+          {/if}
+        {/each}
+        {#if docs[DOC[node.kind]]}<MathPanel doc={docs[DOC[node.kind]]} live={liveRows} />{/if}
+      {:else if graph}
+        <div class="card">
+          <h2>Graph</h2>
+          <p class="hint">{graph.nodes.length} nodes, {graph.wires.length} wires. Select a node to edit it.</p>
+          <h3>Simulation settings</h3>
+          <label class="row">Samples per UI
+            <select value={graph.settings.sps ?? 16} onchange={(e) => setSetting('sps', Number(e.currentTarget.value))}>
+              {#each [4, 8, 16] as v}<option value={v}>{v}</option>{/each}
+            </select>
+          </label>
+          <label class="row">Pattern periods (8191 symbols)
+            <input type="number" min="1" max="8" value={graph.settings.pattern_periods ?? 1} onchange={(e) => setSetting('pattern_periods', Number(e.currentTarget.value))} />
+          </label>
+          <label class="row">Mode resolution
+            <select value={graph.settings.resolution ?? 'mode_group'} onchange={(e) => setSetting('resolution', e.currentTarget.value)}>
+              <option value="mode">per LP mode</option><option value="mode_group">per mode group</option>
+            </select>
+          </label>
+          <label class="row">Signal level
+            <select value={graph.settings.level ?? 'power'} onchange={(e) => setSetting('level', e.currentTarget.value)}>
+              <option value="power">power</option><option value="stokes">Stokes</option><option value="field">field</option>
+            </select>
+          </label>
+          <label class="row">Seed <input type="number" min="0" value={graph.settings.seed ?? 0} onchange={(e) => setSetting('seed', Number(e.currentTarget.value))} /></label>
+          <p class="hint">Browser default: 8 samples/UI (results agree with 16 to &lt; 0.002 dB TDECQ without RIN).</p>
+        </div>
+      {/if}
+
+      {#if issues.length || warnings.length}
+        <div class="card">
+          <h2>Problems</h2>
+          <ul class="issues">
+            {#each issues as i}
+              <li class="error">
+                {#if i.node}<button type="button" class="linkbtn" onclick={() => select(i.node)}>{i.node}</button>:{:else if i.wire !== null && i.wire !== undefined}wire {graph.wires[i.wire]?.from} → {graph.wires[i.wire]?.to}:{/if}
+                {i.message}
+              </li>
+            {/each}
+            {#each warnings as w}
+              <li class="warning"><button type="button" class="linkbtn" onclick={() => select(w.node)}>{w.node}</button>: {w.message}</li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
+    </aside>
+  </div>
+  {#if study}
+    <div class="results">
+      <RunsPanel bind:study onload={loadRun} onmessage={(m) => (message = m)} />
+      <SweepPanel {engine} {graph} bind:study onmessage={(m) => (message = m)} />
+    </div>
+  {/if}
+</div>
+
+<style>
+  .editor { display: flex; flex-direction: column; gap: 0.5rem; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+  .toolbar button:disabled { opacity: 0.45; cursor: default; }
+  .menu { position: relative; }
+  .dropdown { position: absolute; top: calc(100% + 4px); left: 0; z-index: 50; min-width: 21rem; background: #161b28; border: 1px solid #39425a; border-radius: 6px; padding: 0.3rem; box-shadow: 0 6px 24px #0008; display: flex; flex-direction: column; gap: 0.15rem; }
+  .dropdown button { text-align: left; display: flex; flex-direction: column; align-items: flex-start; gap: 0.05rem; width: 100%; }
+  .dropdown .kbd { font-size: 0.72rem; color: #8a93a8; }
+  .mhead { margin: 0.4rem 0.3rem 0.1rem; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: #8a93a8; }
+  .tl { font-size: 0.8rem; color: #8a93a8; }
+  button { background: #1d2333; color: #e6ebf5; border: 1px solid #39425a; border-radius: 4px; padding: 0.2rem 0.55rem; cursor: pointer; font-size: 0.82rem; }
+  button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid #f6a03a; }
+  .danger { margin-top: 0.6rem; border-color: #7a2a33; }
+  .sepv { width: 1px; height: 1.2rem; background: #39425a; margin: 0 0.3rem; }
+  .message { margin: 0; font-size: 0.85rem; color: #b9d7ff; }
+  .cols { display: grid; grid-template-columns: 13rem minmax(0, 1fr) 8px var(--insp); gap: 0.5rem; }
+  @media (max-width: 1100px) { .cols { grid-template-columns: 10rem minmax(0, 1fr); } .inspector { grid-column: 1 / -1; } .split { display: none; } }
+  .split { cursor: col-resize; border-radius: 4px; background: #1a1f2c; }
+  .split:hover, .split:focus-visible { background: #39425a; outline: none; }
+  .run { background: #2d4a2a; border-color: #4f7d48; font-weight: 600; }
+  .mini { font-size: 0.7rem; padding: 0 0.35rem; margin-left: 0.3rem; vertical-align: middle; }
+  .status.stale { color: #e6d39a; }
+  .results { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 0.8rem; align-items: start; }
+  @media (max-width: 1300px) { .results { grid-template-columns: 1fr; } }
+  .facetsel { border: none; padding: 0; margin: 0 0 0.5rem; display: flex; gap: 0.8rem; flex-wrap: wrap; font-size: 0.85rem; }
+  .groups { margin: 0.8rem 0 0; }
+  .groups figcaption { font-size: 0.8rem; color: #aab3c5; margin-bottom: 0.3rem; }
+  .bars { display: flex; align-items: flex-end; gap: 2px; height: 60px; }
+  .bar { flex: 1; background: linear-gradient(#f6c56b, #c4512f); border-radius: 2px 2px 0 0; }
+  .axis { display: flex; justify-content: space-between; font-size: 0.72rem; color: #8a93a8; }
+  .palette { background: #10131c; border: 1px solid #262c3d; border-radius: 8px; padding: 0.5rem; align-self: start; }
+  .palette h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #8a93a8; margin: 0.6rem 0 0.2rem; }
+  .pal { display: flex; align-items: center; gap: 0.5rem; width: 100%; text-align: left; margin: 0.12rem 0; padding: 0.1rem 0.4rem; }
+  .pal :global(.sym) { width: 33px; height: 21px; }
+  .dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; margin-right: 0.15rem; }
+  .dot.optical { background: #f08a5d; }
+  .dot.electrical { background: #6cb6ff; }
+  .dot.data { background: #b7bfd0; border-radius: 1px; }
+  .legend { font-size: 0.72rem; color: #8a93a8; margin-top: 0.8rem; }
+  .canvas { position: relative; height: max(520px, calc(100vh - 330px)); background: #0c0f17; border: 1px solid #262c3d; border-radius: 8px; overflow: hidden; }
+  .canvas .status { position: absolute; left: 0.6rem; bottom: 0.3rem; margin: 0; font-size: 0.78rem; color: #8a93a8; z-index: 5; pointer-events: none; }
+  .inspector { max-height: max(520px, calc(100vh - 330px)); overflow-y: auto; }
+  .card { background: #10131c; border: 1px solid #262c3d; border-radius: 8px; padding: 0.7rem 0.9rem; margin-bottom: 0.8rem; }
+  h2 { font-size: 1rem; margin: 0 0 0.5rem; }
+  h3 { font-size: 0.85rem; margin: 0.8rem 0 0.3rem; color: #aab3c5; }
+  .tag { font-size: 0.7rem; font-weight: 400; color: #8a93a8; border: 1px solid #39425a; border-radius: 3px; padding: 0 0.3rem; margin-left: 0.3rem; }
+  .row { display: grid; grid-template-columns: 9.5rem 1fr; gap: 0.4rem; align-items: center; font-size: 0.85rem; margin: 0.3rem 0; }
+  .row .ptype { grid-column: 1; font-size: 0.7rem; color: #8a93a8; }
+  .row select, .row input, textarea, .pair input { background: #1d2333; color: #e6ebf5; border: 1px solid #39425a; border-radius: 4px; padding: 0.15rem 0.3rem; min-width: 0; }
+  .pair { display: flex; gap: 0.8rem; font-size: 0.85rem; }
+  .pair input { width: 5rem; }
+  .check { display: block; font-size: 0.85rem; margin: 0.3rem 0; }
+  .outs { margin: 0; padding-left: 1.1rem; font-size: 0.82rem; }
+  .ptype { color: #8a93a8; font-size: 0.72rem; }
+  .pval { color: #b9d7ff; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+  .wiretip { position: absolute; z-index: 6; pointer-events: none; background: #1d2333; color: #e6ebf5; border: 1px solid #39425a; border-radius: 4px; padding: 0.15rem 0.45rem; font-size: 0.75rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  details { margin-top: 0.6rem; font-size: 0.85rem; }
+  textarea { width: 100%; box-sizing: border-box; font-family: ui-monospace, monospace; font-size: 0.78rem; margin: 0.3rem 0; }
+  .err { color: #ffb4ab; font-size: 0.8rem; margin: 0.2rem 0; }
+  .hint { font-size: 0.8rem; color: #aab3c5; margin: 0.2rem 0; }
+  .issues { margin: 0; padding-left: 1.1rem; font-size: 0.82rem; }
+  .issues .error { color: #ffb4ab; }
+  .issues .warning { color: #e6d39a; }
+  .linkbtn { background: none; border: none; color: #8cc8ff; padding: 0; text-decoration: underline; font: inherit; }
+  :global(.svelte-flow .svelte-flow__edge.wire .svelte-flow__edge-path) { stroke-width: 2; }
+  :global(.svelte-flow .svelte-flow__edge.optical .svelte-flow__edge-path) { stroke: #f08a5d; }
+  :global(.svelte-flow .svelte-flow__edge.electrical .svelte-flow__edge-path) { stroke: #6cb6ff; }
+  :global(.svelte-flow .svelte-flow__edge.data .svelte-flow__edge-path) { stroke: #b7bfd0; stroke-dasharray: 5 4; }
+  :global(.svelte-flow .svelte-flow__edge.bad .svelte-flow__edge-path) { stroke: #ff6b6b; stroke-width: 3; }
+  :global(.svelte-flow .svelte-flow__edge.selected .svelte-flow__edge-path) { stroke-width: 3.5; }
+</style>

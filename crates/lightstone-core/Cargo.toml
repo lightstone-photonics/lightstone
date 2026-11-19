@@ -1,0 +1,12 @@
+[package]
+name = "lightstone-core"
+description = "Lightstone physics core: VCSEL transmitter, multimode fiber modes, coupling, propagation, receiver"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+rustfft.workspace = true
+num-complex.workspace = true
+serde.workspace = true
+serde_json.workspace = true

@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools==75.3.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lightstone-ref"
+version = "0.1.0"
+description = "NumPy reference implementation of the Lightstone signal chain (test oracle)"
+requires-python = ">=3.10"
+license = { text = "MIT OR Apache-2.0" }
+dependencies = ["numpy>=1.24", "scipy>=1.10"]
+
+[tool.setuptools]
+packages = ["lightstone_ref"]

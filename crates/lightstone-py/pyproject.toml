@@ -1,0 +1,27 @@
+[build-system]
+requires = ["maturin==1.7.4"]
+build-backend = "maturin"
+
+[project]
+name = "lightstone"
+version = "0.1.0"
+description = "Optical Link Simulator: 850 nm VCSEL / OM4 multimode PAM-4 links"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT OR Apache-2.0" }
+dependencies = ["numpy>=1.24"]
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.urls]
+Repository = "https://github.com/lightstone-photonics/lightstone"
+Homepage = "https://lightstone-photonics.github.io/lightstone/"
+Documentation = "https://github.com/lightstone-photonics/lightstone/tree/main/docs"
+
+[tool.maturin]
+python-source = "python"
+module-name = "lightstone._lightstone"
+features = ["pyo3/extension-module"]

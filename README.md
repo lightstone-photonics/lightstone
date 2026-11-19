@@ -2,7 +2,7 @@
 
 **Open-source simulator for short-reach optical links: VCSEL, multimode fiber, PAM-4 receiver.** Build a link from components, see the eye close as you drag the fiber length, and get SER, eye heights and TDECQ in well under a second, in the browser or from Python.
 
-![The graph editor with the reference link: 53 GBd PAM-4 over 100 m OM4, a 5-tap FFE, an eye diagram and a PAM-4 analyzer node; the eye in the inspector.](docs/img/screenshot-editor.png)
+![The graph editor with the reference link: 53 GBd PAM-4 over 100 m OM4 and a 5-tap FFE, with a large eye diagram node; the inspector shows the fiber facet with the LP21 mode field, the power per mode group and the fiber plots.](docs/img/screenshot-editor.png)
 
 **Try it in the browser:** <https://lightstone-photonics.github.io/lightstone/> – nothing to install, no account; the simulation runs locally in WebAssembly.
 

@@ -1,4 +1,5 @@
-// README screenshots of the browser editor (docs/img/screenshot-*.png).
+// README screenshots of the browser editor (docs/img/screenshot-*.png). Note: screenshot-editor.png
+// in the repository was arranged by hand; this script would replace it with an automatic one.
 // Requires Playwright (not a project dependency): npm i --no-save playwright
 // Usage: npm run build, then  node scripts/screenshots.mjs  (serves dist/ itself).
 import { chromium } from 'playwright';

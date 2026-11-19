@@ -1,0 +1,81 @@
+name: Release
+
+# Push a version tag (e.g. `git tag v0.1.0 && git push public v0.1.0`) to build the Python
+# package for Linux, macOS and Windows and publish it on PyPI. The version in the tag must match
+# `version` in crates/lightstone-py/pyproject.toml and Cargo.toml.
+#
+# Publishing uses PyPI Trusted Publishing (no token stored): on pypi.org the project is
+# configured with publisher GitHub, owner lightstone-photonics, repository lightstone,
+# workflow release.yml, environment pypi.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag matches the package version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          py=$(grep -m1 '^version' crates/lightstone-py/pyproject.toml | cut -d'"' -f2)
+          rs=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          echo "tag $tag, pyproject $py, Cargo $rs"
+          test "$tag" = "$py" && test "$tag" = "$rs"
+
+  wheels:
+    needs: check
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: x86_64
+          - os: ubuntu-24.04
+            target: aarch64
+          - os: macos-15
+            target: universal2-apple-darwin
+          - os: windows-2022
+            target: x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: PyO3/maturin-action@v1
+        with:
+          working-directory: crates/lightstone-py
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release --out dist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheels-${{ matrix.os }}-${{ matrix.target }}
+          path: crates/lightstone-py/dist
+
+  sdist:
+    needs: check
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: PyO3/maturin-action@v1
+        with:
+          working-directory: crates/lightstone-py
+          command: sdist
+          args: --out dist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: crates/lightstone-py/dist
+
+  publish:
+    needs: [wheels, sdist]
+    runs-on: ubuntu-24.04
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: dist
+          merge-multiple: true
+      - run: ls -l dist
+      - uses: pypa/gh-action-pypi-publish@release/v1

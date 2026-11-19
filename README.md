@@ -28,17 +28,27 @@
 
 Lightstone is *compared with* IEEE 802.3 and TIA material; it is not certified or endorsed by them. Known limits are listed in [`docs/validation.md`](docs/validation.md), Section 5, and in each component's model document.
 
+## Roadmap
+
+Planned, in this order; the order may change with feedback, and there are no dates:
+
+1. **Measured fibers:** import of measured or worst-case DMD data, which closes the gap away from 850 nm.
+2. **Single-mode IM/DD:** single-mode fiber with chromatic dispersion, DFB and EML lasers with chirp, CWDM4 at 1310 nm.
+3. **Optical amplifiers:** EDFA, ASE noise, OSNR.
+4. **Coherent links:** dual-polarization transmitters and receivers, including polarization multiplexing, with DSP.
+5. **Fiber nonlinearity:** Kerr effects with the split-step method.
+
+Missing something for your work, or have data to compare against? [Open an issue](https://github.com/lightstone-photonics/lightstone/issues).
+
 ![SWDM4 example: four VCSELs at 850–940 nm, WDM mux, 100 m OM5, optical spectrum analyzer, demux, four receivers with FFE and PAM-4 analyzers, and an eye diagram.](docs/img/screenshot-wdm.png)
 
 ## Python
 
-Until the first release on PyPI, install from source (Rust and Python ≥ 3.10 needed):
-
 ```bash
-python -m venv .venv && . .venv/bin/activate
-pip install numpy==2.1.3 maturin==1.7.4
-(cd crates/lightstone-py && maturin develop --release)
+pip install lightstone          # Python ≥ 3.10; Linux, macOS, Windows (from the first PyPI release)
 ```
+
+From source (needs Rust): `pip install maturin==1.7.4`, then `(cd crates/lightstone-py && maturin develop --release)`.
 
 ```python
 import lightstone

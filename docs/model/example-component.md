@@ -14,7 +14,7 @@ An electrical gain and delay block, written as an example of a custom component.
 
 **Transfer function** (`eq:example-component`):
 
-$$y(t) = g\,x(t - \tau),\qquad H(f) = g\,e^{-j2\pi f\tau}$$
+$$y(t) = g\thinspace x(t - \tau),\qquad H(f) = g\thinspace e^{-j2\pi f\tau}$$
 
 Here $x(t)$ is the input and $y(t)$ the output waveform at time $t$ (s), both in the unit of the wire (V after the TIA, A after the photodiode). $g$ is the dimensionless gain (`gain`, default 1), $\tau$ the delay in s (`delay`, default 0), $H(f)$ the transfer function at frequency $f$ (Hz) and $j$ the imaginary unit.
 

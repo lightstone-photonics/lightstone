@@ -17,7 +17,7 @@ A passive optical power splitter (node kind `splitter`): it divides the light at
 
 **Splitter** (`eq:splitter`):
 
-$$P_i(t) = r_i\,10^{-\alpha_\text{ex}/10}\,P_\text{in}(t),\qquad \sum_i r_i \le 1$$
+$$P_i(t) = r_i\thinspace10^{-\alpha_\text{ex}/10}\thinspace P_\text{in}(t),\qquad \sum_i r_i \le 1$$
 
 Here $P_\text{in}(t)$ is the optical input power (W) at time $t$ and $P_i(t)$ the power at output $i$ ($i$ counts the outputs). The split ratio $r_i$ (dimensionless, ≥ 0) is the share of the input power sent to output $i$; a sum below 1 means extra loss. The excess loss $\alpha_\text{ex}$ (dB) applies equally to every output.
 
@@ -38,4 +38,4 @@ Every output carries the input's source contributions with scaled mode-bin weigh
 
 ## Validation
 
-- **G3**: output powers sum to $\sum_i r_i\,10^{-\alpha_\text{ex}/10} \times$ input power to 10⁻¹², with the set ratio between outputs.
+- **G3**: output powers sum to $\sum_i r_i\thinspace10^{-\alpha_\text{ex}/10} \times$ input power to 10⁻¹², with the set ratio between outputs.

@@ -19,7 +19,7 @@ An inline optical tap (node kind `probe`). Its output `out` continues the signal
 
 **Realistic probe** (`eq:probe`), tap ratio $r$ and through-path insertion loss $\alpha_\text{IL}$:
 
-$$P_\text{out}(t) = (1 - r)\,10^{-\alpha_\text{IL}/10}\,P_\text{in}(t),\qquad P_\text{tap}(t) = r\,P_\text{in}(t)$$
+$$P_\text{out}(t) = (1 - r)\thinspace10^{-\alpha_\text{IL}/10}\thinspace P_\text{in}(t),\qquad P_\text{tap}(t) = r\thinspace P_\text{in}(t)$$
 
 Here $P_\text{in}(t)$ is the optical input power (W) at time $t$, $P_\text{out}(t)$ the power at the through output `out`, and $P_\text{tap}(t)$ the power at `tap`. The tap ratio $r$ (dimensionless, 0 … 1) is the share of the input sent to `tap`. The insertion loss $\alpha_\text{IL}$ (dB) acts on the through path only; the tap output carries no insertion loss.
 

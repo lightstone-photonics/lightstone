@@ -492,7 +492,7 @@ The browser's graph editor reads and writes the same format (Section 8.1). An op
 
 The browser app (`web/`, see the README) is a graph editor running the same engine in WebAssembly:
 
-- **☰ Menu**: *Save graph as…*, *Load graph…* (a JSON file, also one saved in Python with `g.to_json()`), *New empty graph*, and **Examples**: the reference link and an SWDM4 WDM link (4 channels 850–940 nm over 100 m OM5, with an optical spectrum analyzer and an eye diagram and SER per channel; `examples/graphs/swdm4-wdm-link.json`). The current graph is autosaved in the browser.
+- **☰ Menu**: *Save graph as…*, *Load graph…* (a JSON file, also one saved in Python with `g.to_json()`), *New empty graph*, and **Examples**: the start page (the reference link with an eye diagram and a PAM-4 analyzer, `examples/graphs/pam4-100m-om4.json`; shown to a new visitor), the bare reference link as the engine generates it, and an SWDM4 WDM link (4 channels 850–940 nm over 100 m OM5, with an optical spectrum analyzer and an eye diagram and SER per channel; `examples/graphs/swdm4-wdm-link.json`). The current graph is autosaved in the browser.
 - **↶ Undo / ↷ Redo** (Ctrl+Z, Ctrl+Shift+Z or Ctrl+Y) step through every edit, including loading a graph; dragging one slider counts as one step.
 - **Add** components from the palette. A new node is placed after the selected one and wired to it where possible.
 - **Wire** by dragging from an output port (right side of a node) to an input port (left side). Port colors show the signal type: optical, electrical, data. Incompatible ports do not connect. A second wire from an optical output offers to insert a splitter.

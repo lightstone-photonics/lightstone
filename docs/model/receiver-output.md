@@ -24,7 +24,7 @@ If the noise has passed a nonlinear block, it warns that σ(t) does not describe
 
 **Materialization** (`eq:materialize`): the noiseless waveform is the inverse FFT of the signal's spectrum (base × accumulated filter × gain); the noisy waveform adds one realization of every noise term, each drawn at its point of generation and filtered since; σ(t) follows from the noise description (signal-spec 5):
 
-$$\sigma^2(t) = \sum_\text{terms} g^2\,\tfrac{f_s}{2}\,(h^2 * S)(t)$$
+$$\sigma^2(t) = \sum_\text{terms} g^2\thinspace\tfrac{f_s}{2}\thinspace(h^2 * S)(t)$$
 
 Here the sum runs over the signal's noise terms. For each term, $S(t)$ is its one-sided PSD at the point of generation (constant or time-varying), $h$ the discrete impulse response of the filters it has passed since then, $h^2$ its squared samples, and $g$ its scalar gain since then. $f_s$ is the sampling rate in Hz (white noise of PSD $S$ has per-sample variance $S f_s/2$), and $*$ is the circular convolution over the time grid. σ(t) is the noise standard deviation in the signal's unit (V after the TIA). Noise that has passed a nonlinear block is carried only as an explicit realization; it is part of the noisy waveform but adds nothing to σ(t), and `gaussian_exact` is false.
 

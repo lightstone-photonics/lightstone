@@ -52,7 +52,17 @@ const lcdRows = async (id) => {
 };
 
 await page.goto('http://localhost:4175/');
-console.log('reference:', await computed(0));
+console.log('start page:', await computed(0));
+// A new visitor sees the PAM-4 example with its eye diagram and analyzer.
+check((await page.locator('.svelte-flow__node-component').count()) === 12 && (await nodeEl('eye').locator('.thumb canvas').count()) === 1,
+  'start page: the PAM-4 example (reference link + eye diagram + analyzer)');
+check(/^SER \d/.test(await readout('ana')), `start page analyzer: ${await readout('ana')}`);
+await shot('start');
+// The rest of the test starts from the bare reference link.
+await page.click('button.menubtn');
+let before0 = await status();
+await page.click('.dropdown button:has-text("Reference link (bare)")');
+console.log('reference:', await computed(before0));
 check((await page.locator('.svelte-flow__node-component').count()) === 10, 'reference link shows 10 nodes (with the receiver FFE)');
 check((await page.locator('.svelte-flow__node-frame').count()) === 4, 'and the 4 zone frames (Transmitter, Channel, Receiver front end, Data recovery)');
 check((await page.locator('.svelte-flow__edge').count()) === 10, 'and 10 wires (FFE input, reference and output)');
@@ -334,7 +344,7 @@ await page.click('button.menubtn');
 await page.click('.dropdown button:has-text("Save graph as")');
 await page.waitForFunction(() => window.__saved !== null);
 const picked = await page.evaluate(() => window.__saved);
-check(picked.suggested === 'lightstone-graph.json' && JSON.parse(picked.text).nodes.length === 15 && (await page.textContent('.message')).includes('Saved my-link.json'),
+check(picked.suggested === 'reference.json' && JSON.parse(picked.text).nodes.length === 15 && (await page.textContent('.message')).includes('Saved my-link.json'),
   `save as: file picker suggests ${picked.suggested}, writes the graph, keeps the chosen name`);
 // … and without it (Firefox, Safari): a name prompt, then a download.
 await page.evaluate(() => { delete window.showSaveFilePicker; });
@@ -484,7 +494,7 @@ check(/^Computed/.test(nrzSt) && /^SER < 2\.3e-19$/.test(nrzSer), `NRZ link runs
 // Examples menu: the SWDM4 WDM link (examples/graphs/swdm4-wdm-link.json) with an eye per channel.
 before = await status();
 await page.click('button.menubtn');
-check((await page.locator('.dropdown button:has-text("Reference link")').count()) === 1, 'menu lists the reference link under Examples');
+check((await page.locator('.dropdown button:has-text("Reference link (bare)")').count()) === 1 && (await page.locator('.dropdown button:has-text("PAM-4 link, 100 m OM4")').count()) === 1, 'menu lists the PAM-4 example and the bare reference link');
 await page.click('.dropdown button:has-text("SWDM4 WDM link")');
 const wdmSt = await computed(before);
 const wdmFile = JSON.parse(await readFile(new URL('../../examples/graphs/swdm4-wdm-link.json', import.meta.url), 'utf8'));

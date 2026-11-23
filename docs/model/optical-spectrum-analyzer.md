@@ -13,7 +13,7 @@ The optical spectrum analyzer (OSA, node kind `optical_spectrum_analyzer`) shows
 
 **Model spectrum** (`eq:osa-model-spectrum`). Every source contribution at the input is a Gaussian line at its centre wavelength $\lambda_c$ with RMS width $\sigma_c$ and its average power $P_c$ at this point. The trace is the power within the resolution bandwidth (RBW) around each wavelength, as a scanning OSA shows it:
 
-$$P_\text{RBW}(\lambda) = \sum_c P_c\left[\Phi\!\left(\frac{\lambda + \mathrm{RBW}/2 - \lambda_c}{\sigma_c}\right) - \Phi\!\left(\frac{\lambda - \mathrm{RBW}/2 - \lambda_c}{\sigma_c}\right)\right]$$
+$$P_\text{RBW}(\lambda) = \sum_c P_c\left[\Phi\negthinspace\left(\frac{\lambda + \mathrm{RBW}/2 - \lambda_c}{\sigma_c}\right) - \Phi\negthinspace\left(\frac{\lambda - \mathrm{RBW}/2 - \lambda_c}{\sigma_c}\right)\right]$$
 
 Here $\lambda$ is the wavelength of the trace point in m, $\mathrm{RBW}$ the resolution bandwidth in m (parameter `rbw`), and the sum runs over the source contributions $c$; $\lambda_c$ and $\sigma_c$ are in m and $P_c$ in W. $\Phi$ is the standard normal cumulative distribution function, so the bracket is the fraction of line $c$ that falls inside the window $\lambda \pm \mathrm{RBW}/2$. $P_\text{RBW}(\lambda)$ is in W and is displayed in dBm. The total power is $\sum_c P_c$.
 

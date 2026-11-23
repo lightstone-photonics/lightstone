@@ -13,15 +13,15 @@ The test data of the link: a pseudo-random symbol sequence, as used to specify a
 
 **PRBS13** (`eq:tx-prbs13`): a 13-bit linear-feedback shift register with polynomial $1 + x + x^2 + x^{12} + x^{13}$. Here $x^k$ stands for a delay of $k$ bits: each new bit is the XOR (sum modulo 2) of the bits 1, 2, 12 and 13 positions earlier. The register starts from a nonzero 13-bit seed and runs through all $2^{13} - 1 = 8191$ nonzero states, so the bit sequence repeats after 8191 bits (maximal length).
 
-**PRBS13Q** (`eq:tx-gray`), for PAM-4 (`levels: 4`, default): two PRBS13 periods (16 382 bits) are taken in pairs, the first bit as MSB, and Gray-coded to a symbol $k \in \{0, 1, 2, 3\}$:
+**PRBS13Q** (`eq:tx-gray`), for PAM-4 (`levels: 4`, default): two PRBS13 periods (16 382 bits) are taken in pairs, the first bit as MSB, and Gray-coded to a symbol $k \in \lbrace0, 1, 2, 3\rbrace$:
 
 $$00 \to 0,\qquad 01 \to 1,\qquad 11 \to 2,\qquad 10 \to 3$$
 
 Neighbouring symbols differ in one bit, so a symbol error to the next level costs one bit error (BER ≈ SER/2).
 
-**NRZ** (`levels: 2`): one PRBS13 period of 8191 bits is used directly as symbols $k \in \{0, 1\}$.
+**NRZ** (`levels: 2`): one PRBS13 period of 8191 bits is used directly as symbols $k \in \lbrace0, 1\rbrace$.
 
-Both patterns therefore have $N_\text{sym} = 8191$ symbols per period, and the simulation grid is the same for both. With `pattern_periods` $= p$ the source repeats the pattern $p$ times, so $N_\text{sym} = 8191\,p$; the record is one period of an endlessly repeating signal (signal-spec 1).
+Both patterns therefore have $N_\text{sym} = 8191$ symbols per period, and the simulation grid is the same for both. With `pattern_periods` $= p$ the source repeats the pattern $p$ times, so $N_\text{sym} = 8191\thinspace p$; the record is one period of an endlessly repeating signal (signal-spec 1).
 
 ## Assumptions & limits
 

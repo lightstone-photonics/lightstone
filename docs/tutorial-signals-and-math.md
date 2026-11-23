@@ -36,7 +36,7 @@ All signals share one time grid:
 
 The pattern repeats, so Lightstone treats every waveform as **periodic**. This has a big advantage: a filter becomes a simple multiplication in the frequency domain, and the result is exact.
 
-$$y(t) = (h * x)(t) \quad\Longleftrightarrow\quad \hat y(f) = H(f)\,\hat x(f)$$
+$$y(t) = (h * x)(t) \quad\Longleftrightarrow\quad \hat y(f) = H(f)\thinspace\hat x(f)$$
 
 In code: FFT, multiply by H(f), inverse FFT. A component that filters is fully described by its **transfer function** H(f).
 
@@ -54,7 +54,7 @@ A decision error to the neighboring level therefore costs only one bit, which is
 
 **Power levels.** The VCSEL modulates its **optical power**, not the light's field. Four equally spaced levels follow from the average power P̄ and the extinction ratio ER = P₃/P₀:
 
-$$P_0 = \frac{2\bar P}{ER + 1},\qquad P_3 = \frac{2\bar P\,ER}{ER + 1},\qquad P_k = P_0 + \frac{k}{3}(P_3 - P_0)$$
+$$P_0 = \frac{2\bar P}{ER + 1},\qquad P_3 = \frac{2\bar P\thinspace ER}{ER + 1},\qquad P_k = P_0 + \frac{k}{3}(P_3 - P_0)$$
 
 Example: P̄ = 1 mW (0 dBm), ER = 4 dB = 2.512:
 
@@ -66,7 +66,7 @@ The **optical modulation amplitude** is OMA_outer = P₃ − P₀ = 0.861 mW. Th
 
 **The VCSEL is not infinitely fast.** Its intensity response is a second-order low-pass with resonance frequency f_r and damping ζ (Section 3.1 explains where that comes from):
 
-$$H_V(f) = \frac{1}{1 - (f/f_r)^2 + j\,2\zeta\,f/f_r}$$
+$$H_V(f) = \frac{1}{1 - (f/f_r)^2 + j\thinspace2\zeta\thinspace f/f_r}$$
 
 With f_r = 28 GHz and ζ = 0.7 the −3 dB bandwidth is ≈ 28 GHz, about half the symbol rate. The sharp steps of the drive signal become smooth transitions, which is the first source of **intersymbol interference** (ISI): each symbol leaks a little into its neighbors.
 
@@ -121,7 +121,7 @@ A fiber guides light in a discrete set of **modes**. Each mode is a field patter
 
 How many modes a fiber guides is set by the **V-number**:
 
-$$V = \frac{2\pi}{\lambda}\,a\,NA = \frac{2\pi}{850\ \text{nm}} \cdot 25\ \mu\text{m} \cdot 0.20 \approx 37$$
+$$V = \frac{2\pi}{\lambda}\thinspace a\thinspace NA = \frac{2\pi}{850\ \text{nm}} \cdot 25\ \mu\text{m} \cdot 0.20 \approx 37$$
 
 A graded-index fiber guides about V²/4 ≈ 340 modes counting both polarizations, i.e. ≈ 171 spatial modes. These are grouped into 90 LP labels (most LP modes exist in two orientations, cos lφ and sin lφ). Lightstone's solver finds exactly 90 LP modes and 171 spatial modes.
 
@@ -131,7 +131,7 @@ In a fiber with a flat (step) index, the modes would arrive with very different 
 
 OM4 uses a **graded index**. The refractive index is highest in the center and falls off almost like a parabola:
 
-$$n^2(r) = n_1^2\left(1 - 2\Delta\,(r/a)^\alpha\right),\qquad \alpha \approx 2$$
+$$n^2(r) = n_1^2\left(1 - 2\Delta\thinspace(r/a)^\alpha\right),\qquad \alpha \approx 2$$
 
 High-order modes travel a longer zig-zag path, but through glass with lower index, where light is faster. With α close to its optimum both effects almost cancel. The remaining delay differences are the **differential mode delay (DMD)**; for OM4 they are a few ps per 100 m.
 
@@ -141,7 +141,7 @@ The field in the fiber is a sum of modes. In principle the detector sees interfe
 
 1. **Orthogonality.** Modes are orthogonal over the fiber cross-section. A detector that collects all the light integrates over the whole cross-section, so every cross term integrates to zero:
 
-$$\iint \psi_k\,\psi_l^*\,dA = \delta_{kl}$$
+$$\iint \psi_k\thinspace\psi_l^*\thinspace dA = \delta_{kl}$$
 
 2. **Incoherence.** A VCSEL is not a perfectly coherent light source, so even without orthogonality, light arriving at different times hardly interferes. Section 4.4 explains this with the **degree of coherence** γ. For modes arriving several ps apart, γ is practically zero.
 
@@ -157,17 +157,17 @@ That is the **`Power` level** of an optical signal: one power value per mode (or
 
 The **degree of coherence** γ(Δτ) measures this, between 1 (perfect interference) and 0 (powers simply add). The detected power of the two recombined copies, with phase difference Δφ, is
 
-$$P = P_1 + P_2 + 2\sqrt{P_1 P_2}\;\gamma(\Delta\tau)\cos\Delta\varphi$$
+$$P = P_1 + P_2 + 2\sqrt{P_1 P_2}\thickspace\gamma(\Delta\tau)\cos\Delta\varphi$$
 
 The last term is the interference term; γ scales it.
 
 **Link to the spectrum.** How fast the phase wanders depends on how wide the spectrum is: a single, pure frequency has a phase that never wanders; a broad spectrum is a mix of many frequencies that drift apart quickly. Mathematically, γ(Δτ) is the normalized Fourier transform of the optical power spectrum (Wiener–Khinchin theorem). For a Gaussian spectrum with RMS width σ_ν:
 
-$$\gamma(\Delta\tau) = e^{-2\pi^2\sigma_\nu^2\,\Delta\tau^2}$$
+$$\gamma(\Delta\tau) = e^{-2\pi^2\sigma_\nu^2\thinspace\Delta\tau^2}$$
 
 The **coherence time** τ_c is the delay at which γ has dropped to 1/e, and the **coherence length** is how far light travels in that time:
 
-$$\tau_c = \frac{1}{\sqrt2\,\pi\,\sigma_\nu},\qquad L_c = \frac{c}{n}\,\tau_c$$
+$$\tau_c = \frac{1}{\sqrt2\thinspace\pi\thinspace\sigma_\nu},\qquad L_c = \frac{c}{n}\thinspace\tau_c$$
 
 **Numbers.** The default VCSEL has σ_λ = 0.4 nm, i.e. σ_ν = c·σ_λ/λ² ≈ 166 GHz:
 
@@ -211,7 +211,7 @@ Components never see the resolution directly. A fiber span adds delay to "every 
 
 The VCSEL's light enters the fiber at the connector. How much power each mode receives is given by the **overlap integral** between the incoming field E_in and the mode field ψ_m:
 
-$$c_m = \iint E_\text{in}(x, y)\,\psi_m(x, y)\,dx\,dy,\qquad P_m = |c_m|^2$$
+$$c_m = \iint E_\text{in}(x, y)\thinspace\psi_m(x, y)\thinspace dx\thinspace dy,\qquad P_m = |c_m|^2$$
 
 Intuition: a mode receives power if its field pattern "looks like" the incoming light.
 
@@ -232,13 +232,13 @@ Each mode bin k reaches the end of the fiber with three properties:
 - **delay** τ_k: its group delay relative to the average
 - **chromatic broadening** σ_k: different wavelengths in the VCSEL spectrum travel at slightly different speeds
 
-$$\sigma_k = |D_k|\,L\,\sigma_\lambda \approx 93\ \tfrac{\text{ps}}{\text{nm·km}} \cdot 0.1\ \text{km} \cdot 0.4\ \text{nm} \approx 3.7\ \text{ps}$$
+$$\sigma_k = |D_k|\thinspace L\thinspace\sigma_\lambda \approx 93\ \tfrac{\text{ps}}{\text{nm·km}} \cdot 0.1\ \text{km} \cdot 0.4\ \text{nm} \approx 3.7\ \text{ps}$$
 
 D ≈ −93 ps/(nm·km) is the dispersion of the launched modes at 850 nm: the fused-silica cladding alone would give −84, the germania-doped core makes it larger (`docs/model/custom-fiber.md`).
 
 The fiber turns into one transfer function acting on optical power:
 
-$$H_\text{fiber}(f) = \sum_k w_k\;\underbrace{e^{-j2\pi f\tau_k}}_{\text{delay}}\;\underbrace{e^{-2\pi^2 f^2\sigma_k^2}}_{\text{chromatic broadening}}$$
+$$H_\text{fiber}(f) = \sum_k w_k\thickspace\underbrace{e^{-j2\pi f\tau_k}}_{\text{delay}}\thickspace\underbrace{e^{-2\pi^2 f^2\sigma_k^2}}_{\text{chromatic broadening}}$$
 
 ### Worked example: two modes
 
@@ -248,7 +248,7 @@ $$H(f) = \tfrac12\left(1 + e^{-j2\pi f\Delta\tau}\right),\qquad |H(f)| = |\cos(\
 
 The optical −3 dB bandwidth is where |H| = ½, i.e. πfΔτ = π/3:
 
-$$f_\text{3dB} = \frac{1}{3\,\Delta\tau}$$
+$$f_\text{3dB} = \frac{1}{3\thinspace\Delta\tau}$$
 
 With Δτ = 10 ps this gives 33 GHz. More delay spread means less bandwidth. This is exactly validation test V7.
 
@@ -289,7 +289,7 @@ Two things to notice:
 
 Lightstone doesn't only add random numbers. Each signal carries a **description** of its noise: which sources, how strong, and which filters they have passed. As long as everything is linear, the exact variance at any point follows from
 
-$$\sigma^2(t) = \sum_\text{sources}\tfrac{f_s}{2}\,(g^2 * S)(t),\qquad g = \mathcal{F}^{-1}\{H\}$$
+$$\sigma^2(t) = \sum_\text{sources}\tfrac{f_s}{2}\thinspace(g^2 * S)(t),\qquad g = \mathcal{F}^{-1}\lbrace H\rbrace$$
 
 where g is the impulse response the noise has seen. Knowing σ(t) exactly makes very low error rates computable (next section).
 
@@ -303,23 +303,23 @@ The decision circuit samples once per symbol at the best phase and compares with
 
 For Gaussian noise, the probability of crossing a threshold at distance d from the sample is
 
-$$Q\!\left(\frac{d}{\sigma}\right),\qquad Q(x) = \tfrac12\,\mathrm{erfc}\!\left(\tfrac{x}{\sqrt2}\right)$$
+$$Q\negthinspace\left(\frac{d}{\sigma}\right),\qquad Q(x) = \tfrac12\thinspace\mathrm{erfc}\negthinspace\left(\tfrac{x}{\sqrt2}\right)$$
 
 Lightstone's **semi-analytic SER** applies this to every one of the 8191 noiseless samples y_n with its own σ_n:
 
-$$\mathrm{SER} = \frac1N\sum_n\left[Q\!\left(\frac{y_n - \theta_{k_n - 1}}{\sigma_n}\right) + Q\!\left(\frac{\theta_{k_n} - y_n}{\sigma_n}\right)\right]$$
+$$\mathrm{SER} = \frac1N\sum_n\left[Q\negthinspace\left(\frac{y_n - \theta_{k_n - 1}}{\sigma_n}\right) + Q\negthinspace\left(\frac{\theta_{k_n} - y_n}{\sigma_n}\right)\right]$$
 
 This includes ISI exactly (each sample has its own position) and resolves SERs like 10⁻¹⁵, far below what counting errors in 8191 symbols could show.
 
 Sanity check (validation test V12): for ideal levels with spacing d and constant σ the formula reduces to
 
-$$\mathrm{SER} = \tfrac32\,Q\!\left(\frac{d}{2\sigma}\right)$$
+$$\mathrm{SER} = \tfrac32\thinspace Q\negthinspace\left(\frac{d}{2\sigma}\right)$$
 
 ### 8.2 TDECQ in one paragraph
 
 TDECQ (transmitter and dispersion eye closure, quaternary) is the IEEE figure of merit for PAM-4 optical links. Take the received optical waveform through the reference receiver and a 5-tap equalizer, then ask: **how much Gaussian noise σ_G can be added before the SER reaches 4.8 × 10⁻⁴?** Compare with an ideal transmitter:
 
-$$\mathrm{TDECQ} = 10\log_{10}\frac{\mathrm{OMA_{outer}}/(6\,Q_t)}{\sigma_G / C_\text{eq}},\qquad Q_t = 3.414$$
+$$\mathrm{TDECQ} = 10\log_{10}\frac{\mathrm{OMA_{outer}}/(6\thinspace Q_t)}{\sigma_G / C_\text{eq}},\qquad Q_t = 3.414$$
 
 C_eq corrects for the noise the equalizer itself amplifies. An ideal signal gives 0 dB. Lightstone's default link gives ≈ 1.8 dB at 0 m (VCSEL bandwidth alone), ≈ 2.6 dB at 100 m and ≈ 3.8 dB at 150 m.
 
@@ -341,7 +341,7 @@ Suppose the TIA clips its output at ±0.5 V: y = clip(x).
 
 **Superposition fails:**
 
-$$\mathrm{clip}(0.4\,\text{V} + 0.3\,\text{V}) = 0.5\ \text{V} \;\neq\; \mathrm{clip}(0.4\,\text{V}) + \mathrm{clip}(0.3\,\text{V}) = 0.7\ \text{V}$$
+$$\mathrm{clip}(0.4\thinspace\text{V} + 0.3\thinspace\text{V}) = 0.5\ \text{V} \thickspace\neq\thickspace \mathrm{clip}(0.4\thinspace\text{V}) + \mathrm{clip}(0.3\thinspace\text{V}) = 0.7\ \text{V}$$
 
 Consequences:
 

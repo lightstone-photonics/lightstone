@@ -45,7 +45,7 @@ Missing something for your work, or have data to compare against? [Open an issue
 ## Python
 
 ```bash
-pip install lightstone          # Python ≥ 3.10; Linux, macOS, Windows (from the first PyPI release)
+pip install lightstone          # Python ≥ 3.10; Linux, macOS, Windows
 ```
 
 From source (needs Rust): `pip install maturin==1.7.4`, then `(cd crates/lightstone-py && maturin develop --release)`.
@@ -74,7 +74,7 @@ def rc(f, ctx):                                   # describe H(f); the engine ap
 g.insert("ffe", "rc", "rc_filter", fc=25e9).run()
 ```
 
-All values are SI units unless a key says otherwise (`*_dbm`, `*_db`, `*_db_per_km`, `*_db_hz`). Example graphs are in [`examples/graphs/`](examples/graphs/) (also in the editor's menu); notebooks in [`notebooks/`](notebooks/) (signal tutorial, custom component, sweeps, validation report).
+All values are SI units unless a key says otherwise (`*_dbm`, `*_db`, `*_db_per_km`, `*_db_hz`). Example graphs are in [`examples/graphs/`](examples/graphs/) (also in the editor's menu; `pam4-100m-om4.json` is the start page); notebooks in [`notebooks/`](notebooks/) (signal tutorial, custom component, sweeps, validation report).
 
 ## Documentation
 

@@ -32,3 +32,18 @@ test('one model doc per component kind (docs/architecture.md, 5.1)', async () =>
   for (const f of files) assert.ok(used.includes(f) || pythonOnly.has(f), `${f}.md belongs to no component kind`);
   for (const f of pythonOnly) assert.ok(!used.includes(f), `${f}.md is marked python_only but belongs to an editor kind`);
 });
+
+test('formulas survive GitHub Markdown (no \\{ \\} \\, \\; \\! inside $…$)', () => {
+  // GitHub applies Markdown backslash escapes inside math: \{ becomes {, \, becomes a comma.
+  // Use \lbrace, \rbrace, \thinspace, \thickspace, \negthinspace instead.
+  const docs = [new URL('../../docs/', import.meta.url), dir];
+  for (const d of docs) {
+    for (const f of readdirSync(d).filter((x) => x.endsWith('.md'))) {
+      const s = readFileSync(new URL(f, d), 'utf8').replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]*`/g, '');
+      for (const m of s.matchAll(/\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g)) {
+        const t = m[1] ?? m[2];
+        assert.ok(!/\\[{},;!]/.test(t), `${f}: ${t.slice(0, 60)}`);
+      }
+    }
+  }
+});

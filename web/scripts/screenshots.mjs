@@ -34,6 +34,11 @@ const settle = () => page.waitForTimeout(600);
 
 await page.goto('http://localhost:4176/');
 await after(0);
+// Start from the bare reference link (the start page already has an eye and an analyzer).
+let b0 = await runs();
+await page.click('button.menubtn');
+await page.click('.dropdown button:has-text("Reference link (bare)")');
+await after(b0);
 
 // 1. Reference link with an eye diagram and an analyzer after the FFE; the eye in the inspector.
 await select('ffe');

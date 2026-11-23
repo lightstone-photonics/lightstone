@@ -13,7 +13,7 @@ Transmitter and dispersion eye closure for PAM-4 (TDECQ), the IEEE 802.3 figure 
 
 **Input and reference receiver** (`eq:tdecq-input`): the node takes the optical signal at its input, collects all light, and filters it with its own reference receiver, a 4th-order Bessel–Thomson low-pass (`bessel-thomson.md`) at $f_\text{3dB} = 0.5\times$ baud. Transmitter noise (RIN, transmitter jitter) is part of the waveform; receiver noise is not:
 
-$$P_\text{ref}(t) = \mathcal{F}^{-1}\Big\{H_\text{BT}(f)\sum_\text{sources}\big(\hat P_\text{tx}(f) + \hat P_\text{RIN}(f) + \hat P_\text{J}(f)\big)H_\text{ch}(f)\Big\}$$
+$$P_\text{ref}(t) = \mathcal{F}^{-1}\Big\lbrace H_\text{BT}(f)\sum_\text{sources}\big(\hat P_\text{tx}(f) + \hat P_\text{RIN}(f) + \hat P_\text{J}(f)\big)H_\text{ch}(f)\Big\rbrace$$
 
 Here $P_\text{ref}(t)$ is the filtered optical power in W and $\mathcal{F}^{-1}$ the inverse Fourier transform (an inverse FFT on the time grid). $H_\text{BT}(f)$ is the reference receiver, $f$ the frequency in Hz, $f_\text{3dB}$ the filter's −3 dB frequency in Hz and baud the symbol rate in Bd. The sum runs over the optical sources. For each source, $\hat P_\text{tx}(f)$ is the spectrum of its transmitted power, $\hat P_\text{RIN}(f)$ the spectrum of its RIN realization (`vcsel.md`), $\hat P_\text{J}(f)$ that of its transmitter-jitter noise (zero without jitter, `driver.md`), and $H_\text{ch}(f)$ the power transfer function of its channel from the transmitter to the node, with all light collected.
 
@@ -21,7 +21,7 @@ Here $P_\text{ref}(t)$ is the filtered optical power in W and $\mathcal{F}^{-1}$
 
 **Equalizer** (`eq:ffe`): 5 T-spaced taps with $\sum c_i = 1$, where $c_i$ ($i = 0 \dots 4$) are the dimensionless tap weights and $T$ is the symbol period. The constraint keeps the DC gain at 1. Its noise enhancement for noise shaped by the reference receiver is
 
-$$C_\text{eq} = \sqrt{\frac{\int |H_\text{ref}(f)\,H_\text{FFE}(f)|^2 df}{\int |H_\text{ref}(f)|^2 df}}$$
+$$C_\text{eq} = \sqrt{\frac{\int |H_\text{ref}(f)\thinspace H_\text{FFE}(f)|^2 df}{\int |H_\text{ref}(f)|^2 df}}$$
 
 Here $f$ is the frequency in Hz, $H_\text{ref}(f)$ the transfer function of the reference receiver, and $H_\text{FFE}(f)$ that of the equalizer (`docs/model/ffe.md`). $C_\text{eq}$ (dimensionless) is the factor by which the equalizer scales the RMS of the receiver-shaped noise. Both integrals run from 0 to 6 × baud.
 
@@ -29,9 +29,9 @@ Here $f$ is the frequency in Hz, $H_\text{ref}(f)$ the transfer function of the 
 
 **TDECQ** (`eq:tdecq`):
 
-$$\mathrm{TDECQ} = 10\log_{10}\frac{\mathrm{OMA_{outer}} / (6\,Q_t)}{\sigma_G / C_\text{eq}},\qquad Q_t = 3.414\quad\left(\tfrac32 Q(Q_t) = 4.8\times10^{-4}\right)$$
+$$\mathrm{TDECQ} = 10\log_{10}\frac{\mathrm{OMA_{outer}} / (6\thinspace Q_t)}{\sigma_G / C_\text{eq}},\qquad Q_t = 3.414\quad\left(\tfrac32 Q(Q_t) = 4.8\times10^{-4}\right)$$
 
-Here $\mathrm{OMA_{outer}}$ is the outer optical modulation amplitude in W, $Q(x)$ the Gaussian tail function (the probability that a standard normal variable exceeds $x$), and $Q_t$ the dimensionless Q-factor at which an ideal PAM-4 eye reaches the target SER. $\mathrm{OMA_{outer}}/(6\,Q_t)$ is the noise standard deviation an ideal transmitter tolerates at the target SER (half the level spacing $\mathrm{OMA_{outer}}/3$, divided by $Q_t$). $\sigma_G / C_\text{eq}$ is the tolerated noise of this signal, referred back to the equalizer input. TDECQ is in dB.
+Here $\mathrm{OMA_{outer}}$ is the outer optical modulation amplitude in W, $Q(x)$ the Gaussian tail function (the probability that a standard normal variable exceeds $x$), and $Q_t$ the dimensionless Q-factor at which an ideal PAM-4 eye reaches the target SER. $\mathrm{OMA_{outer}}/(6\thinspace Q_t)$ is the noise standard deviation an ideal transmitter tolerates at the target SER (half the level spacing $\mathrm{OMA_{outer}}/3$, divided by $Q_t$). $\sigma_G / C_\text{eq}$ is the tolerated noise of this signal, referred back to the equalizer input. TDECQ is in dB.
 
 An ideal, ISI-free transmitter gives 0 dB.
 

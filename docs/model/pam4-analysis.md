@@ -25,19 +25,19 @@ Inputs: `in` (electrical) and `ref`, the transmitted symbols from the pattern so
 
 **Semi-analytic SER** (`eq:pam4-ser-semi-analytic`). This is the primary estimate. It includes ISI exactly and assumes Gaussian noise:
 
-$$\mathrm{SER} = \frac1N\sum_n\left[Q\!\left(\frac{y_{0,n} - \theta_{k_n-1}}{\sigma_n}\right) + Q\!\left(\frac{\theta_{k_n} - y_{0,n}}{\sigma_n}\right)\right]$$
+$$\mathrm{SER} = \frac1N\sum_n\left[Q\negthinspace\left(\frac{y_{0,n} - \theta_{k_n-1}}{\sigma_n}\right) + Q\negthinspace\left(\frac{\theta_{k_n} - y_{0,n}}{\sigma_n}\right)\right]$$
 
 Here $N$ is the number of analyzed symbols and $n$ the symbol index. $k_n$ is the transmitted level of symbol $n$, $y_{0,n}$ its noiseless sample at the optimal phase and $\sigma_n$ the RMS noise at that sample (from the noise model σ(t)). The first term is the probability that noise pushes the sample below its lower threshold, the second above its upper threshold.
 
-Missing thresholds for the outer levels are dropped, and $Q(x) = \tfrac12\,\mathrm{erfc}(x/\sqrt2)$ is the Gaussian tail function: the probability that a standard normal variable exceeds $x$ ($\mathrm{erfc}$ is the complementary error function).
+Missing thresholds for the outer levels are dropped, and $Q(x) = \tfrac12\thinspace\mathrm{erfc}(x/\sqrt2)$ is the Gaussian tail function: the probability that a standard normal variable exceeds $x$ ($\mathrm{erfc}$ is the complementary error function).
 
 **Level-Gaussian SER** (`eq:pam4-ser-gaussian`), with ISI lumped into $\sigma_k$:
 
-$$\mathrm{SER}_G = \frac1M\sum_k\left[Q\!\left(\frac{\hat\mu_k - \theta_{k-1}}{\hat\sigma_k}\right) + Q\!\left(\frac{\theta_k - \hat\mu_k}{\hat\sigma_k}\right)\right]$$
+$$\mathrm{SER}_G = \frac1M\sum_k\left[Q\negthinspace\left(\frac{\hat\mu_k - \theta_{k-1}}{\hat\sigma_k}\right) + Q\negthinspace\left(\frac{\theta_k - \hat\mu_k}{\hat\sigma_k}\right)\right]$$
 
 Here $\hat\mu_k$ and $\hat\sigma_k$ are the mean and standard deviation of the noisy samples of level $k$ at the optimal phase (not the noiseless $\mu_k$ of the thresholds), and the sum runs over the $M$ levels $k$. Each level is treated as one Gaussian.
 
-For ideal equally spaced levels with spacing $d$ (the distance between adjacent level means) and the same noise standard deviation $\sigma$ on every level, this reduces to $\mathrm{SER} = \tfrac{2(M-1)}{M}\,Q\!\left(\tfrac{d}{2\sigma}\right)$: $\tfrac32 Q$ for PAM-4, $Q$ for NRZ.
+For ideal equally spaced levels with spacing $d$ (the distance between adjacent level means) and the same noise standard deviation $\sigma$ on every level, this reduces to $\mathrm{SER} = \tfrac{2(M-1)}{M}\thinspace Q\negthinspace\left(\tfrac{d}{2\sigma}\right)$: $\tfrac32 Q$ for PAM-4, $Q$ for NRZ.
 
 **BER** $\approx$ SER/2 for Gray-coded PAM-4 (a symbol error almost always flips one of its two bits); BER = SER for NRZ.
 
@@ -45,9 +45,9 @@ For ideal equally spaced levels with spacing $d$ (the distance between adjacent 
 
 **Receiver clock jitter** (`eq:rx-clock-jitter`, option `clock_rj_rms_ui`, default 0). Random jitter $\sigma_\text{clk}$ (in UI) of the sampling instant adds the slope of the noiseless waveform at the sampling instant:
 
-$$\sigma_\text{tot}^2(t) = \sigma^2(t) + \big(y_0'(t)\,\sigma_\text{clk}\big)^2$$
+$$\sigma_\text{tot}^2(t) = \sigma^2(t) + \big(y_0'(t)\thinspace\sigma_\text{clk}\big)^2$$
 
-$y_0'$ is computed spectrally. Here $\sigma_\text{tot}(t)$ is the total noise standard deviation at sampling instant $t$, $\sigma(t)$ the standard deviation of all other noise (including TX RJ), $y_0(t)$ the noiseless received waveform and $y_0'$ its derivative per UI, so $y_0'\,\sigma_\text{clk}$ is in the units of $y_0$. Only the semi-analytic SER uses $\sigma_\text{tot}$. It is not in the noisy waveform, so eye height, eye width and the counted SER do not include it; TDECQ does not include it either, as in the standard. Transmitter jitter is part of the signal itself (`driver.md`).
+$y_0'$ is computed spectrally. Here $\sigma_\text{tot}(t)$ is the total noise standard deviation at sampling instant $t$, $\sigma(t)$ the standard deviation of all other noise (including TX RJ), $y_0(t)$ the noiseless received waveform and $y_0'$ its derivative per UI, so $y_0'\thinspace\sigma_\text{clk}$ is in the units of $y_0$. Only the semi-analytic SER uses $\sigma_\text{tot}$. It is not in the noisy waveform, so eye height, eye width and the counted SER do not include it; TDECQ does not include it either, as in the standard. Transmitter jitter is part of the signal itself (`driver.md`).
 
 **Eye height** (`eq:pam4-eye-height`): $EH_k = q_{p}(\text{level }k{+}1) - q_{1-p}(\text{level }k)$, with empirical quantiles of the noisy samples and $p = 10^{-3}$. $EH_k$ is the vertical opening of eye $k$ (between levels $k$ and $k+1$) in the units of the input waveform. $q_p(\text{level }k)$ is the value below which a fraction $p$ of the samples of level $k$ lie, so $q_p(\text{level }k{+}1)$ is the lower edge of the upper level and $q_{1-p}(\text{level }k)$ the upper edge of the lower level. $p$ is the probability contour of the eye. A negative $EH_k$ means the eye is closed. The **eye width** $EW_k$ (in UI) is the contiguous phase range around the optimum where the eye stays open at $\theta_k$, i.e. the lower edge of level $k+1$ stays above $\theta_k$ and the upper edge of level $k$ stays below it.
 
@@ -59,7 +59,7 @@ $y_0'$ is computed spectrally. Here $\sigma_\text{tot}(t)$ is the total noise st
 
 - **No equalizer** in the analysis itself. Real 50G/100G-per-lane receivers equalize: analyze after an `ffe` node, or use TDECQ for an equalized figure of merit.
 - Counted errors are limited by the pattern length (8191 symbols per period). The semi-analytic SER extends far below that.
-- The semi-analytic SER drops terms with $Q$ arguments above 9, so it cannot show values below $2\,Q(9) \approx 2.3\times10^{-19}$ (at most two threshold terms per symbol, each below $Q(9)$). The `pam4_analyzer` report gives this floor (`ser_floor`) and the RMS of σ(t) (`noise_rms`), where σ(t) is the RMS noise of the waveform versus time; the editor shows an SER of 0 as `< 2.3e-19`, or as `0 (no noise)` when σ = 0, together with the worst-pair Q-factor (`q_min`).
+- The semi-analytic SER drops terms with $Q$ arguments above 9, so it cannot show values below $2\thinspace Q(9) \approx 2.3\times10^{-19}$ (at most two threshold terms per symbol, each below $Q(9)$). The `pam4_analyzer` report gives this floor (`ser_floor`) and the RMS of σ(t) (`noise_rms`), where σ(t) is the RMS noise of the waveform versus time; the editor shows an SER of 0 as `< 2.3e-19`, or as `0 (no noise)` when σ = 0, together with the worst-pair Q-factor (`q_min`).
 - Receiver clock jitter enters only the semi-analytic SER (first order in the slope, like the transmitter's random jitter).
 - Empirical $10^{-3}$ quantiles from ~2048 samples per level are statistically noisy. Increase `tx.pattern_periods` for stable EH/EW.
 

@@ -24,11 +24,11 @@ Here $k$ is the symbol value and $M$ the number of levels (4 for PAM-4: 0, ⅓, 
 
 **Drive waveform** (`eq:tx-nrz`): the continuous NRZ-hold waveform
 
-$$d(t) = \sum_n L_{k_n}\,\mathrm{rect}\!\left(\frac{t}{T} - n - \tfrac12\right)$$
+$$d(t) = \sum_n L_{k_n}\thinspace\mathrm{rect}\negthinspace\left(\frac{t}{T} - n - \tfrac12\right)$$
 
 is represented by its exact spectrum on the simulation grid,
 
-$$X(f) = S(f)\,T\,\mathrm{sinc}(fT)\,e^{-j\pi fT}$$
+$$X(f) = S(f)\thinspace T\thinspace\mathrm{sinc}(fT)\thinspace e^{-j\pi fT}$$
 
 Here $d(t)$ is the normalized drive (dimensionless) at time $t$ (s), $n$ the symbol index, $k_n$ the symbol value of symbol $n$, $T$ the symbol period (s; 1/baud), and $\mathrm{rect}$ the unit rectangle (1 inside $\pm\tfrac12$, 0 outside), so symbol $n$ holds its level from $nT$ to $(n+1)T$. $S$ is the DFT of the symbol levels $L_{k_n}$ (periodic in $f$ with period $1/T$), $X(f)$ the spectrum of the drive at frequency $f$ (Hz, the FFT bins of the grid), $\mathrm{sinc}(x) = \sin(\pi x)/(\pi x)$ the spectrum of one rectangular symbol, $e^{-j\pi fT}$ the delay by $T/2$ that puts symbol $n$ at $nT \dots (n+1)T$, and $j$ the imaginary unit.
 
@@ -36,23 +36,23 @@ This is the alias-free sampled version of the continuous drive: results do not d
 
 **Edge shifts** (`eq:tx-jitter`). The edge into symbol $n$, with step $\Delta_n = L_{k_n} - L_{k_{n-1}}$, moves by
 
-$$\tau_n = -\operatorname{sign}(\Delta_n)\,\frac{\mathrm{DCD}}{2} + A_\text{SJ}\,\lvert H_\text{J}(f_\text{SJ})\rvert\,\sin\!\big(2\pi f_\text{SJ}\,nT + \arg H_\text{J}(f_\text{SJ})\big),\qquad H_\text{J}(f) = \frac{jf}{f_c + jf}$$
+$$\tau_n = -\operatorname{sign}(\Delta_n)\thinspace\frac{\mathrm{DCD}}{2} + A_\text{SJ}\thinspace\lvert H_\text{J}(f_\text{SJ})\rvert\thinspace\sin\negthinspace\big(2\pi f_\text{SJ}\thinspace nT + \arg H_\text{J}(f_\text{SJ})\big),\qquad H_\text{J}(f) = \frac{jf}{f_c + jf}$$
 
 Here $\Delta_n$ is the dimensionless level step at the edge into symbol $n$; $\operatorname{sign}(\Delta_n)$ is $+1$ for a rising and $-1$ for a falling edge. $\tau_n$ is the time shift of the edge (s, negative = early), DCD the duty-cycle distortion (s, peak-to-peak), $A_\text{SJ}$ the SJ peak amplitude (s), $f_\text{SJ}$ the SJ frequency (Hz), $T = 1/f_\text{baud}$ the symbol period (s) with symbol rate $f_\text{baud}$ (Bd), $f$ the jitter frequency (Hz) and $j$ the imaginary unit. $\lvert H_\text{J}\rvert$ and $\arg H_\text{J}$ scale and phase-shift the SJ.
 
 Rising edges come DCD/2 early and falling edges DCD/2 late, so high pulses are DCD longer and low pulses DCD shorter. DCD is the peak-to-peak value, the DJ(δδ) of the dual-Dirac model. $H_\text{J}$ is the jitter transfer of a first-order clock recovery with corner $f_c$ (`cdr_corner`, default 4 MHz as for the 802.3 reference CRU): slow SJ is tracked out, so the waveform is referenced to the recovered clock. $f_\text{SJ}$ is rounded to a multiple of the record's frequency resolution $1/(N_\text{sym}T)$, with $N_\text{sym}$ the number of symbols in the record (6.49 MHz for one PRBS13Q period at 53.125 GBd), so the jitter is periodic on the grid; the driver warns when it rounds.
 
-**Exact edge-shift spectrum** (`eq:tx-edge-shift`). The drive is a sum of steps, $x(t) = x_0 + \sum_e \Delta_e\,u(t - t_e)$. Here $e$ runs over the edges (symbol boundaries with a level change), $\Delta_e$ is the step of edge $e$, $t_e$ its shifted time (s), $u$ the unit step function, and $x_0$ the constant drive level the steps start from. On the periodic grid each step contributes $\Delta_e\,e^{-j\theta_k p_e}/(j\theta_k)$ with $\theta_k = 2\pi\tilde k/N$ and $p_e$ its position in samples. $k$ is the FFT bin (here not a symbol value), $\tilde k$ its signed frequency index ($-N/2 \dots N/2$), $N$ the number of samples in the record ($N_\text{sym}$ times `sps`), and $\theta_k$ the bin's angular frequency (rad/sample). The phase factor is split into the nearest sample $q_e$ (an FFT of an impulse train) and a remainder $|r_e| \le \tfrac12$:
+**Exact edge-shift spectrum** (`eq:tx-edge-shift`). The drive is a sum of steps, $x(t) = x_0 + \sum_e \Delta_e\thinspace u(t - t_e)$. Here $e$ runs over the edges (symbol boundaries with a level change), $\Delta_e$ is the step of edge $e$, $t_e$ its shifted time (s), $u$ the unit step function, and $x_0$ the constant drive level the steps start from. On the periodic grid each step contributes $\Delta_e\thinspace e^{-j\theta_k p_e}/(j\theta_k)$ with $\theta_k = 2\pi\tilde k/N$ and $p_e$ its position in samples. $k$ is the FFT bin (here not a symbol value), $\tilde k$ its signed frequency index ($-N/2 \dots N/2$), $N$ the number of samples in the record ($N_\text{sym}$ times `sps`), and $\theta_k$ the bin's angular frequency (rad/sample). The phase factor is split into the nearest sample $q_e$ (an FFT of an impulse train) and a remainder $|r_e| \le \tfrac12$:
 
-$$X_k = \frac{1}{j\theta_k}\sum_{m\ge 0}\frac{(-j\theta_k)^m}{m!}\,\mathrm{FFT}\Big[\sum_e \Delta_e\,r_e^m\,\delta_{q_e}\Big]_k,\qquad X_0 = \text{sps}\Big(\sum_n L_{k_n} - \sum_e \Delta_e\,\frac{\tau_e}{T}\Big)$$
+$$X_k = \frac{1}{j\theta_k}\sum_{m\ge 0}\frac{(-j\theta_k)^m}{m!}\thinspace\mathrm{FFT}\Big[\sum_e \Delta_e\thinspace r_e^m\thinspace\delta_{q_e}\Big]_k,\qquad X_0 = \text{sps}\Big(\sum_n L_{k_n} - \sum_e \Delta_e\thinspace\frac{\tau_e}{T}\Big)$$
 
 Here $X_k$ is bin $k \ne 0$ of the drive spectrum and $X_0$ its DC bin, $m$ the order of the Taylor series of $e^{-j\theta_k r_e}$, $r_e = p_e - q_e$ (samples), $\delta_{q_e}$ a unit impulse at sample $q_e$, $\mathrm{FFT}[\cdot]_k$ bin $k$ of the FFT, sps the samples per UI, and $\tau_e/T$ the shift of edge $e$ in UI ($\tau_e$ is the $\tau_n$ of that edge, in s).
 
 $|\theta_k r_e| \le \pi/2$, so the series is truncated below $10^{-17}$ (about 20 FFTs). The result is alias-free like the unshifted drive and equals it for $\tau \equiv 0$. Without DJ the driver uses the unshifted spectrum unchanged.
 
-**Random jitter as slope noise** (`eq:tx-jitter`). An edge shifted by a small Gaussian $\tau_e$ ($\sigma_\text{RJ}$) differs from the unshifted one by $-\Delta_e\tau_e\,\delta(t - t_e)$ to first order, where $\sigma_\text{RJ}$ is the RMS random jitter (s) and $\delta$ the Dirac impulse. The driver emits this as one noise term: a band-limited impulse at each edge's exact position with weight $a_e = \Delta_e\,\sigma_\text{RJ}/\Delta t$ and strength $S_e = 2a_e^2/f_s$. Here $a_e$ is the dimensionless RMS sample value of the impulse, $\Delta t = 1/f_s$ the sample spacing (s), $f_s$ the sample rate (Hz), and $S_e$ the one-sided noise PSD (1/Hz) it carries. Like RIN, the term passes VCSEL, fiber and receiver filter with exact noise bookkeeping (signal-spec 5):
+**Random jitter as slope noise** (`eq:tx-jitter`). An edge shifted by a small Gaussian $\tau_e$ ($\sigma_\text{RJ}$) differs from the unshifted one by $-\Delta_e\tau_e\thinspace\delta(t - t_e)$ to first order, where $\sigma_\text{RJ}$ is the RMS random jitter (s) and $\delta$ the Dirac impulse. The driver emits this as one noise term: a band-limited impulse at each edge's exact position with weight $a_e = \Delta_e\thinspace\sigma_\text{RJ}/\Delta t$ and strength $S_e = 2a_e^2/f_s$. Here $a_e$ is the dimensionless RMS sample value of the impulse, $\Delta t = 1/f_s$ the sample spacing (s), $f_s$ the sample rate (Hz), and $S_e$ the one-sided noise PSD (1/Hz) it carries. Like RIN, the term passes VCSEL, fiber and receiver filter with exact noise bookkeeping (signal-spec 5):
 
-$$\sigma_\text{J}^2(t) = \sigma_\text{RJ}^2\sum_e \Delta_e^2\,h^2(t - t_e)$$
+$$\sigma_\text{J}^2(t) = \sigma_\text{RJ}^2\sum_e \Delta_e^2\thinspace h^2(t - t_e)$$
 
 $\sigma_\text{J}^2(t)$ is the variance of the resulting noise at the receiver at time $t$, and $h$ is the impulse response from the drive to the receiver. The noise is zero between edges and peaks at the edges (Figure 1a). The realization is drawn from the driver's own seed, so RIN, shot and thermal noise keep their random streams.
 
@@ -73,7 +73,7 @@ Jitter of the receiver's sampling clock is not part of the driver: it is an opti
 ## Assumptions & limits
 
 - **First-order RJ.** The slope-noise model is exact for $\sigma_\text{RJ} \ll$ the edge rise time. The error grows with $Q\sigma_\text{RJ}$ relative to the rise time, where $Q$ is the Gaussian tail factor of the target BER (about 7 at 10⁻¹²): at 10.3125 GBd on the fast link of V16b, the 10⁻¹² eye width is within 0.4 σ of the dual-Dirac value for σ = 0.19 ps and within 1.2 σ for σ = 0.39 ps. The driver warns above 0.05 UI RMS. Edge shifts larger than this belong in DJ.
-- **Clock recovery.** It reduces SJ only. For white RJ the high-pass removes about $\pi f_c/f_\text{baud} \approx 2.4 \cdot 10^{-4}$ of the variance and is neglected (jitter of independent edges is white up to $f_\text{baud}/2$; the first-order high-pass with corner $f_c$ removes $\int_0^{f_\text{baud}/2} f_c^2/(f^2 + f_c^2)\,df \approx \pi f_c/2$ of that band). DCD is locked to the pattern and has no low-frequency content for a balanced PRBS.
+- **Clock recovery.** It reduces SJ only. For white RJ the high-pass removes about $\pi f_c/f_\text{baud} \approx 2.4 \cdot 10^{-4}$ of the variance and is neglected (jitter of independent edges is white up to $f_\text{baud}/2$; the first-order high-pass with corner $f_c$ removes $\int_0^{f_\text{baud}/2} f_c^2/(f^2 + f_c^2)\thinspace df \approx \pi f_c/2$ of that band). DCD is locked to the pattern and has no low-frequency content for a balanced PRBS.
 - **Edges must not cross.** DCD plus SJ larger than the edge spacing (about 1 UI) is rejected.
 - Not modeled: bounded uncorrelated jitter, spread-spectrum clocking, and the jitter tolerance test with a CDR in the loop.
 - The drive itself is ideal: no driver bandwidth, no level mismatch or nonlinearity of the PAM-4 levels.

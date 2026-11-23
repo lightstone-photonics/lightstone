@@ -13,7 +13,7 @@ A lumped, wavelength-independent optical loss: a variable optical attenuator, a 
 
 **Power transmission** (`eq:attenuator`):
 
-$$P_\text{out}(t) = T\,P_\text{in}(t),\qquad T = 10^{-\text{loss}_\text{dB}/10}$$
+$$P_\text{out}(t) = T\thinspace P_\text{in}(t),\qquad T = 10^{-\text{loss}_\text{dB}/10}$$
 
 Here $P_\text{in}(t)$ and $P_\text{out}(t)$ are the optical power (W) at the input and output at time $t$, $T$ is the power transmission (dimensionless, 0 … 1), and $\text{loss}_\text{dB}$ is the attenuation `loss_db` (dB).
 

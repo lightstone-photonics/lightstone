@@ -258,7 +258,7 @@ The fiber is **linear in power**. VCSEL light is incoherent over the delay diffe
 - **Output.** The same contribution, now *guided*. It holds a reference to the mode set and one **mode bin** per LP mode (90 bins at the default resolution `mode`). Each bin has a power weight, an accumulated delay and an accumulated delay slope.
 - **No waveform yet.** The fiber is just this table. Its effect on the waveform is evaluated only at the photodiode, as one transfer function:
 
-$$H(f) = \sum_m w_m\,e^{-j2\pi f(\tau_m - \bar\tau)}\,e^{-2\pi^2 f^2\sigma_m^2},\qquad \sigma_m = \Big|\frac{d\tau_m}{d\lambda}\Big|\,\sigma_\lambda$$
+$$H(f) = \sum_m w_m\thinspace e^{-j2\pi f(\tau_m - \bar\tau)}\thinspace e^{-2\pi^2 f^2\sigma_m^2},\qquad \sigma_m = \Big|\frac{d\tau_m}{d\lambda}\Big|\thinspace\sigma_\lambda$$
 
 A second fiber span would continue the same mode bins: it adds delays and losses and requires the same geometry.
 
@@ -505,7 +505,7 @@ How it works:
 3. It sets the thresholds halfway between the level means.
 4. It computes the **semi-analytic SER**: for each of the 8191 noiseless samples y_n with its own σ_n, the Gaussian probability of falling beyond a threshold (`eq:pam4-ser-semi-analytic`):
 
-$$\mathrm{SER} = \frac1N\sum_n\left[Q\!\left(\frac{y_n - \theta_{k_n-1}}{\sigma_n}\right) + Q\!\left(\frac{\theta_{k_n} - y_n}{\sigma_n}\right)\right]$$
+$$\mathrm{SER} = \frac1N\sum_n\left[Q\negthinspace\left(\frac{y_n - \theta_{k_n-1}}{\sigma_n}\right) + Q\negthinspace\left(\frac{\theta_{k_n} - y_n}{\sigma_n}\right)\right]$$
 
 This includes the ISI exactly and reaches SERs far below 1/8191. The eye heights and widths are measured on the noisy realization, at the 10⁻³ probability contour.
 
@@ -551,7 +551,7 @@ More: [`model/pam4-analysis.md`](model/pam4-analysis.md), [`model/tdecq.md`](mod
 
 Everything from the drive to the receiver output is linear, apart from the VCSEL's 0 W clip, which never acts. The engine therefore never builds the per-mode waveforms. The receiver waveform is one inverse FFT of one product:
 
-$$y(t) = \mathcal{F}^{-1}\Big\{\hat x_\text{drive}(f)\cdot (P_3 - P_0)\,H_V(f)\cdot \underbrace{\sum_m w_m\,e^{-j2\pi f\tau_m}e^{-2\pi^2f^2\sigma_m^2}}_{\text{fiber, 90 mode bins}}\cdot R\cdot Z\cdot H_\text{BT}(f)\cdot H_\text{FFE}(f)\Big\} + \text{DC}$$
+$$y(t) = \mathcal{F}^{-1}\Big\lbrace\hat x_\text{drive}(f)\cdot (P_3 - P_0)\thinspace H_V(f)\cdot \underbrace{\sum_m w_m\thinspace e^{-j2\pi f\tau_m}e^{-2\pi^2f^2\sigma_m^2}}_{\text{fiber, 90 mode bins}}\cdot R\cdot Z\cdot H_\text{BT}(f)\cdot H_\text{FFE}(f)\Big\rbrace + \text{DC}$$
 
 Every noise term follows the same chain from its point of origin, and σ(t) is computed exactly from it.
 

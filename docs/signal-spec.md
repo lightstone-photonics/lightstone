@@ -78,7 +78,7 @@ A wire fed by one VCSEL has one contribution. Behind a combiner of four VCSELs i
 
 The waveform it stands for is
 
-$$P_k(t) = \mathcal{F}^{-1}\Big\{ \hat P_\text{tx}(f)\; w_k\, e^{-j2\pi f \tau_k}\, e^{-2\pi^2 f^2 \sigma_k^2}\, H_\text{extra}(f) \Big\}$$
+$$P_k(t) = \mathcal{F}^{-1}\Big\lbrace \hat P_\text{tx}(f)\thickspace w_k\thinspace e^{-j2\pi f \tau_k}\thinspace e^{-2\pi^2 f^2 \sigma_k^2}\thinspace H_\text{extra}(f) \Big\rbrace$$
 
 Nothing is computed yet; a lazy signal costs a few kilobytes.
 
@@ -144,7 +144,7 @@ NoiseDescription
 
 While `gaussian_exact` is true, the variance at any point is exact and cheap:
 
-$$\sigma^2(t) = \sum_\text{terms} \tfrac{f_s}{2}\,(g^2 * S)(t),\qquad g = \mathcal{F}^{-1}\{H\}$$
+$$\sigma^2(t) = \sum_\text{terms} \tfrac{f_s}{2}\thinspace(g^2 * S)(t),\qquad g = \mathcal{F}^{-1}\lbrace H\rbrace$$
 
 This is the formula the current receiver already uses (docs/architecture.md, Section 3.5). It is what makes the semi-analytic SER possible: SER values far below 1/N_sym without simulating billions of symbols.
 
@@ -158,7 +158,7 @@ After a nonlinear block, the noise that passed it is carried as one explicit rea
 
 A component is **linear (time-invariant)** if its output is a fixed transfer function applied to its input:
 
-$$y = \mathcal{F}^{-1}\{H(f)\,\hat x(f)\}$$
+$$y = \mathcal{F}^{-1}\lbrace H(f)\thinspace\hat x(f)\rbrace$$
 
 For linear components, superposition holds (y(a + b) = y(a) + y(b)) and the order of linear blocks does not matter (H₁H₂ = H₂H₁).
 
@@ -187,9 +187,9 @@ Link: PRBS13Q → driver → VCSEL → connector → 100 m OM4 → PIN → TIA �
 
 Every block after the VCSEL is linear in optical power or current, so the engine computes
 
-$$H_\text{total}(f) = H_\text{VCSEL}(f)\cdot \underbrace{\sum_k w_k\, e^{-j2\pi f\tau_k} e^{-2\pi^2 f^2\sigma_k^2}}_{\text{fiber, 18 mode groups}} \cdot R \cdot Z \cdot H_\text{BT}(f)$$
+$$H_\text{total}(f) = H_\text{VCSEL}(f)\cdot \underbrace{\sum_k w_k\thinspace e^{-j2\pi f\tau_k} e^{-2\pi^2 f^2\sigma_k^2}}_{\text{fiber, 18 mode groups}} \cdot R \cdot Z \cdot H_\text{BT}(f)$$
 
-and obtains the receiver output with a single inverse FFT of $\hat x_\text{NRZ}(f)\,H_\text{total}(f)$. The 18 mode groups only appear as 18 terms in a sum over frequency points; their individual waveforms are never stored. The thermal, shot and RIN noise terms are each filtered linearly, so σ²(t) is exact and the semi-analytic SER is valid down to 10⁻¹⁵ and below.
+and obtains the receiver output with a single inverse FFT of $\hat x_\text{NRZ}(f)\thinspace H_\text{total}(f)$. The 18 mode groups only appear as 18 terms in a sum over frequency points; their individual waveforms are never stored. The thermal, shot and RIN noise terms are each filtered linearly, so σ²(t) is exact and the semi-analytic SER is valid down to 10⁻¹⁵ and below.
 
 Cost: a few FFTs of 131 k points, ≈ 50 ms natively.
 
@@ -262,7 +262,7 @@ The engine switches a signal to `Stokes` automatically when a polarization-sensi
 
 A linear, polarization-aware component maps Stokes vectors with a 4×4 **Mueller matrix** M (constant or frequency-dependent per mode bin):
 
-$$\mathbf{s}_\text{out} = M\,\mathbf{s}_\text{in}$$
+$$\mathbf{s}_\text{out} = M\thinspace\mathbf{s}_\text{in}$$
 
 | Component | Mueller matrix |
 |---|---|
@@ -317,7 +317,7 @@ Conversions:
 
 At the `Field` level each mode bin carries the slowly varying complex envelope relative to a reference optical carrier ν₀ (from the source wavelength):
 
-$$E_\text{physical}(t) = \mathrm{Re}\big\{\,E(t)\, e^{\,j2\pi\nu_0 t}\big\},\qquad |E(t)|^2 = P(t)\ \ [\mathrm{W}]$$
+$$E_\text{physical}(t) = \mathrm{Re}\big\lbrace\thinspace E(t)\thinspace e^{\thinspace j2\pi\nu_0 t}\big\rbrace,\qquad |E(t)|^2 = P(t)\ \ [\mathrm{W}]$$
 
 - Propagation phases are stored **relative to a reference** (the reference mode's β·L, which is ~10⁹ rad over 100 m). Only differences are kept, in f64, to avoid the precision loss that absolute optical phases would cause.
 - The **lazy form** of a `Field` signal is the same as for `Power`, except the per-mode-bin transfer functions are **complex**: a linear component declares a complex H_k(f) (including phase) or a 2×2 Jones matrix J_k(f) per mode bin, instead of a power weight.
@@ -336,7 +336,7 @@ How it is used:
 
 A photodiode measures intensity integrated over its area. With a finite detector, cross terms between modes do **not** vanish, because the modes are only orthogonal over the whole plane:
 
-$$I(t) = R \sum_{k,l} \eta_{kl}\,\gamma(\tau_k - \tau_l)\,\mathrm{Re}\{E_k(t)\,E_l^*(t)\}$$
+$$I(t) = R \sum_{k,l} \eta_{kl}\thinspace\gamma(\tau_k - \tau_l)\thinspace\mathrm{Re}\lbrace E_k(t)\thinspace E_l^*(t)\rbrace$$
 
 η_kl is the detector overlap matrix: η_kl = δ_kl·η_k for full-area detection, where the formula reduces to the incoherent sum. Today's detector already stores η_k (the diagonal); the full matrix is the reserved extension.
 
@@ -386,7 +386,7 @@ This also covers effects that already matter in lower stages: back-reflections i
 
 A linear photonic circuit is described in the frequency domain by **scattering matrices**: each component is S(f), mapping incoming waves at all its ports (both directions) to outgoing waves.
 
-$$\mathbf{b}(f) = S(f)\,\mathbf{a}(f)$$
+$$\mathbf{b}(f) = S(f)\thinspace\mathbf{a}(f)$$
 
 Connecting components links the outgoing waves of one port to the incoming waves of another. For the whole subcircuit this gives one linear system of equations per frequency. The system may contain **loops**, e.g. a ring resonator, and is solved directly for every frequency point of the grid.
 

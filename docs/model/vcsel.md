@@ -13,7 +13,7 @@ An 850 nm vertical-cavity surface-emitting laser, directly modulated by the driv
 
 **Power levels** (`eq:tx-levels`) from the average power $\bar P$ and the outer extinction ratio $ER = P_{M-1}/P_0$:
 
-$$P_0 = \frac{2\bar P}{ER + 1},\qquad P_{M-1} = \frac{2\bar P\,ER}{ER + 1},\qquad P_k = P_0 + \frac{k}{M-1}(P_{M-1} - P_0)$$
+$$P_0 = \frac{2\bar P}{ER + 1},\qquad P_{M-1} = \frac{2\bar P\thinspace ER}{ER + 1},\qquad P_k = P_0 + \frac{k}{M-1}(P_{M-1} - P_0)$$
 
 $$\mathrm{OMA_{outer}} = P_{M-1} - P_0$$
 
@@ -21,13 +21,13 @@ Here $P_k$ is the optical power (W) of level $k = 0 \dots M-1$, $M$ the number o
 
 **Drive to power**: the normalized drive $d(t)$ from the driver (0 for the lowest, 1 for the highest level; $t$ is time in s) gives the optical power
 
-$$P(t) = \max\!\Big(0,\ \mathcal{F}^{-1}\big\{H_V(f)\,\mathcal{F}\{P_0 + (P_{M-1} - P_0)\,d\}(f)\big\}(t)\Big)$$
+$$P(t) = \max\negthinspace\Big(0,\ \mathcal{F}^{-1}\big\lbrace H_V(f)\thinspace\mathcal{F}\lbrace P_0 + (P_{M-1} - P_0)\thinspace d\rbrace(f)\big\rbrace(t)\Big)$$
 
-Here $P(t)$ is the transmitted optical power (W), $\mathcal{F}$ and $\mathcal{F}^{-1}$ are the Fourier transform and its inverse (FFTs on the time grid), and $H_V(f)$ is the modulation response below. Power cannot be negative, so it is clipped at 0 W; with the default parameters this never happens, but it makes the node formally nonlinear. Noise terms of the drive (transmitter jitter, `driver.md`) are converted to optical power noise with $(P_{M-1} - P_0)\,H_V(f)$ and then carried like RIN.
+Here $P(t)$ is the transmitted optical power (W), $\mathcal{F}$ and $\mathcal{F}^{-1}$ are the Fourier transform and its inverse (FFTs on the time grid), and $H_V(f)$ is the modulation response below. Power cannot be negative, so it is clipped at 0 W; with the default parameters this never happens, but it makes the node formally nonlinear. Noise terms of the drive (transmitter jitter, `driver.md`) are converted to optical power noise with $(P_{M-1} - P_0)\thinspace H_V(f)$ and then carried like RIN.
 
 **Modulation response** (`eq:vcsel-response`), applied to the power waveform:
 
-$$H_V(f) = \frac{1}{1 - (f/f_r)^2 + j\,2\zeta\,f/f_r}$$
+$$H_V(f) = \frac{1}{1 - (f/f_r)^2 + j\thinspace2\zeta\thinspace f/f_r}$$
 
 Here $H_V(f)$ is the complex gain of the power waveform at modulation frequency $f$ (Hz, 1 at DC), $j$ the imaginary unit, $f_r$ the relaxation-oscillation resonance frequency (Hz) and $\zeta$ the dimensionless damping factor, which sets how much the response peaks near $f_r$. The defaults ($f_r$ = 28 GHz, $\zeta$ = 0.7) give a −3 dB bandwidth of 28.3 GHz.
 
@@ -45,9 +45,9 @@ white up to $f_s/2$. Here $S_P$ is the power spectral density of the noise (W²/
 
 **VCSEL near field** (`eq:launch-lg`): an incoherent, equal-power mixture of the lowest $Q$ Laguerre–Gauss mode groups ($2p + l = q - 1$, $q = 1 \dots Q$):
 
-$$u_{pl}(\rho,\phi) = \frac{C_{pl}}{w}\left(\frac{\sqrt2\rho}{w}\right)^{l} L_p^{l}\!\left(\frac{2\rho^2}{w^2}\right) e^{-\rho^2/w^2}\,\{\cos,\sin\}(l\phi)$$
+$$u_{pl}(\rho,\phi) = \frac{C_{pl}}{w}\left(\frac{\sqrt2\rho}{w}\right)^{l} L_p^{l}\negthinspace\left(\frac{2\rho^2}{w^2}\right) e^{-\rho^2/w^2}\thinspace\lbrace\cos,\sin\rbrace(l\phi)$$
 
-Each mode is normalized to unit power, and $(\rho, \phi)$ are measured from the beam center (at the connector's offset $\Delta x$, `connector.md`). Here $q$ is the mode group index, $Q$ the number of groups, $p \ge 0$ the radial and $l \ge 0$ the azimuthal mode index, $\rho$ the radial distance (m) and $\phi$ the azimuth angle (rad), $w$ the beam radius (m, the radius where the fundamental field falls to $1/e$), $L_p^{l}$ the generalized Laguerre polynomial, and $C_{pl}$ the dimensionless constant that gives the mode unit power. $\{\cos,\sin\}(l\phi)$ means that each mode with $l > 0$ comes in a cos and a sin orientation, counted as two modes; $l = 0$ has only one.
+Each mode is normalized to unit power, and $(\rho, \phi)$ are measured from the beam center (at the connector's offset $\Delta x$, `connector.md`). Here $q$ is the mode group index, $Q$ the number of groups, $p \ge 0$ the radial and $l \ge 0$ the azimuthal mode index, $\rho$ the radial distance (m) and $\phi$ the azimuth angle (rad), $w$ the beam radius (m, the radius where the fundamental field falls to $1/e$), $L_p^{l}$ the generalized Laguerre polynomial, and $C_{pl}$ the dimensionless constant that gives the mode unit power. $\lbrace\cos,\sin\rbrace(l\phi)$ means that each mode with $l > 0$ comes in a cos and a sin orientation, counted as two modes; $l = 0$ has only one.
 
 ![Transmitted optical power over 24 symbols with the four PAM-4 levels, and the VCSEL modulation response with its -3 dB bandwidth.](img/vcsel-levels-response.svg)
 

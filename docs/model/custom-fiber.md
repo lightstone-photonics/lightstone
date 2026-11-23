@@ -28,12 +28,12 @@ Here $n(r,\lambda)$ is the refractive index at radial distance $r$ (m) from the 
 **Materials** (`core_material`, default `germania_doped`):
 
 - Cladding $n_2(\lambda)$: fused silica, Sellmeier equation (`eq:material-sellmeier`, Malitson 1965).
-- Core centre $n_1(\lambda)$: GeO₂–SiO₂ glass with GeO₂ mole fraction $x$ (`eq:material-germania`, Fleming 1984). Its Sellmeier coefficients are interpolated linearly between fused silica and GeO₂ glass, $B_i(x) = B_{i,\mathrm{SiO_2}} + x\,(B_{i,\mathrm{GeO_2}} - B_{i,\mathrm{SiO_2}})$, likewise $C_i$. Here $i = 1, 2, 3$ counts the terms of the three-term Sellmeier equation $n^2 - 1 = \sum_i B_i\lambda^2/(\lambda^2 - C_i^2)$: $B_i$ (dimensionless) is the strength of term $i$ and $C_i$ (µm, with $\lambda$ in µm) its resonance wavelength. The subscripts SiO₂ and GeO₂ mark the coefficients of pure fused silica and pure GeO₂ glass.
+- Core centre $n_1(\lambda)$: GeO₂–SiO₂ glass with GeO₂ mole fraction $x$ (`eq:material-germania`, Fleming 1984). Its Sellmeier coefficients are interpolated linearly between fused silica and GeO₂ glass, $B_i(x) = B_{i,\mathrm{SiO_2}} + x\thinspace(B_{i,\mathrm{GeO_2}} - B_{i,\mathrm{SiO_2}})$, likewise $C_i$. Here $i = 1, 2, 3$ counts the terms of the three-term Sellmeier equation $n^2 - 1 = \sum_i B_i\lambda^2/(\lambda^2 - C_i^2)$: $B_i$ (dimensionless) is the strength of term $i$ and $C_i$ (µm, with $\lambda$ in µm) its resonance wavelength. The subscripts SiO₂ and GeO₂ mark the coefficients of pure fused silica and pure GeO₂ glass.
 - $x$ is fixed by the numerical aperture at 850 nm, $\sqrt{n_1^2 - n_2^2} = NA$, where NA (dimensionless) is the numerical aperture, the sine of the largest acceptance angle: for NA = 0.20, $x$ = 9.2 mol% GeO₂. The graded profile is a graded GeO₂ concentration, so the doped core has its own, stronger dispersion than the cladding.
 - Consequence: $\Delta$ and the NA change with wavelength (**profile dispersion**). This shifts the optimum α at 850 nm to ≈ 2.03–2.04, as for real Ge-doped fibers, and raises the chromatic dispersion of the launched modes from −85 (pure silica) to −93 ps/(nm·km) at 850 nm.
 - `core_material: "fixed_delta"` restores the model of versions ≤ 0.11: both indices follow fused silica, $\Delta = NA^2/(2n_1^2)$ is held constant (NA at the source wavelength), optimum α ≈ 1.98.
 
-**Scalar mode equation** (`eq:modes-radial`) for $\psi = F(r)\{\cos,\sin\}(l\varphi)$:
+**Scalar mode equation** (`eq:modes-radial`) for $\psi = F(r)\lbrace\cos,\sin\rbrace(l\varphi)$:
 
 $$F'' + \frac{F'}{r} + \left(k_0^2 n^2(r) - \frac{l^2}{r^2}\right)F = \beta^2 F$$
 
@@ -49,9 +49,9 @@ Here $m$ numbers the guided LP modes and $\tau_m$ is the group delay of mode $m$
 
 **Power propagation** (`eq:fiber-power-propagation`). The VCSEL coherence time (~ps) is shorter than the delay spread, so intermodal interference averages out and the fiber is linear in power:
 
-$$H(f) = \sum_m w_m\,e^{-j2\pi f(\tau_m - \bar\tau)L}\,e^{-2\pi^2 f^2\sigma_m^2},\qquad \sigma_m = \left|\frac{d\tau_m}{d\lambda}\right| L\,\sigma_\lambda$$
+$$H(f) = \sum_m w_m\thinspace e^{-j2\pi f(\tau_m - \bar\tau)L}\thinspace e^{-2\pi^2 f^2\sigma_m^2},\qquad \sigma_m = \left|\frac{d\tau_m}{d\lambda}\right| L\thinspace\sigma_\lambda$$
 
-$$w_m = P_m\,\eta_m\,10^{-\alpha_\text{dB}(\lambda)\,L/(10 \cdot 1000\,\text{m})}\,10^{-\text{loss}_\text{dB}/10}$$
+$$w_m = P_m\thinspace\eta_m\thinspace10^{-\alpha_\text{dB}(\lambda)\thinspace L/(10 \cdot 1000\thinspace\text{m})}\thinspace10^{-\text{loss}_\text{dB}/10}$$
 
 Here $H(f)$ is the transfer function of the fiber on optical power (dimensionless) at modulation frequency $f$ (Hz), and $j$ is the imaginary unit. $w_m$ is the power weight of mode $m$ at the detector. $\tau_m$ is the group delay per unit length of mode $m$ (s/m, above), so $(\tau_m - \bar\tau)L$ is the mode's delay relative to the mean. $\sigma_m$ is the RMS chromatic broadening of mode $m$ (s) and $\sigma_\lambda$ the RMS spectral width of the source (m). $P_m$ is the fraction of the source power launched into mode $m$, $\alpha_\text{dB}(\lambda)$ the fiber attenuation at the source wavelength (dB/km, `eq:fiber-attenuation`; $L$ in m), and $\text{loss}_\text{dB}$ the lumped extra loss `extra_loss_db` (dB). $\eta_m$ is the detector-area fraction (1 for full collection), and $\bar\tau$ is the power-weighted mean delay.
 
@@ -62,7 +62,7 @@ Here $H(f)$ is the transfer function of the fiber on optical power (dimensionles
 1. **Modes.** The mode solver finds all guided LP modes at the source wavelength (90 at 850 nm for the OM4 preset). Each mode $m$ gets its group delay per length $\tau_m$.
 2. **Launch weights.** The overlap of the VCSEL near field with every mode gives the launched power fraction $P_m$; with full collection, no attenuation and no extra loss the weight is $w_m = P_m$. With the defaults the near field is an equal mix of the 4 lowest Laguerre–Gauss mode groups with a 4 µm waist, centred on the core (connector offset 0, tilt 0). About 90 % of the power then lands in mode groups 1–6.
 3. **Transfer function at 1 km**, without attenuation and without chromatic dispersion (spectral width 0), so only modal delay counts:
-   $$H(f) = \sum_m w_m\,e^{-j2\pi f(\tau_m - \bar\tau)L},\qquad L = 1\ \text{km},\quad \bar\tau = \text{power-weighted mean delay}$$
+   $$H(f) = \sum_m w_m\thinspace e^{-j2\pi f(\tau_m - \bar\tau)L},\qquad L = 1\ \text{km},\quad \bar\tau = \text{power-weighted mean delay}$$
    Each mode is a delayed copy of the input; their sum acts as a low-pass filter.
 4. **−3 dB point.** The lowest frequency with $|H(f)/H(0)| = \tfrac12$ (optical −3 dB, the fiber-bandwidth convention, since $H$ acts on optical power): a scan up to 50/(delay spread), then 80 bisection steps.
 5. **Bandwidth × length.** For pure delays the bandwidth scales exactly as $1/L$, so $B \cdot 1\ \text{km}$ in MHz·km does not depend on the reference length. Here $B$ is the −3 dB bandwidth found in step 4 at $L$ = 1 km.
@@ -80,7 +80,7 @@ The result is the `emb_length` of the fiber report. It depends on the launch: wi
 
 At 850 nm the calibration makes both equal. At other wavelengths they diverge: the worst reference launch can be a different one, and real worst-case fibers have DMD patterns (an index dip on the axis, distortions near the core edge, outer modes early and inner modes late) that a single α cannot produce. Those fibers just pass at 850 nm but degrade faster at longer wavelengths. This is why the `mmf` presets are optimistic away from 850 nm (V18, `mmf.md`). A measured or worst-case DMD import would fix both points: realistic delays per radius and wavelength, and the EMB computed as the standard does (worst over the reference launches). The single-launch EMB would remain as "the bandwidth for your actual source".
 
-**Attenuation** (`eq:fiber-attenuation`): $T = 10^{-\alpha_\text{dB/km}(\lambda)\,L/(10 \cdot 1000\,\text{m})}$, evaluated at each source's wavelength. Here $T$ is the power transmission of the fiber (dimensionless), $\alpha_\text{dB/km}(\lambda)$ the attenuation in dB/km at wavelength $\lambda$ (the $\alpha(\lambda)$ of the next equation), and $L$ the fiber length in m.
+**Attenuation** (`eq:fiber-attenuation`): $T = 10^{-\alpha_\text{dB/km}(\lambda)\thinspace L/(10 \cdot 1000\thinspace\text{m})}$, evaluated at each source's wavelength. Here $T$ is the power transmission of the fiber (dimensionless), $\alpha_\text{dB/km}(\lambda)$ the attenuation in dB/km at wavelength $\lambda$ (the $\alpha(\lambda)$ of the next equation), and $L$ the fiber length in m.
 
 **Attenuation spectrum** (`eq:fiber-attenuation-spectrum`, since v0.16; `attenuation_spectrum: "rayleigh"`, default). `attenuation_db_per_km` is the value at 850 nm. A share $f_R$ scales like Rayleigh scattering, the rest is wavelength-independent:
 
@@ -122,8 +122,8 @@ In a lane configuration the same keys are under `fiber.`.
 
 ## Validation
 
-- **V1**: step-index fiber with $V = 4.5$, where $V = k_0 a\,NA$ is the normalized frequency (dimensionless). $n_\text{eff}$ of LP01/11/21/02 matches the analytic Bessel eigenvalue equation to < 10⁻⁶.
-- **V2**: parabolic profile. Mode-group eigenvalues $\beta^2 = k^2n_1^2 - 2kn_1\sqrt{2\Delta}\,g/a$ match to < 10⁻⁵, and group $g$ contains $\lceil g/2\rceil$ LP labels. Here $k = k_0$ is the vacuum wavenumber, $g = 1, 2, \dots$ the principal mode group number, and $\lceil\cdot\rceil$ rounds up to the next integer.
+- **V1**: step-index fiber with $V = 4.5$, where $V = k_0 a\thinspace NA$ is the normalized frequency (dimensionless). $n_\text{eff}$ of LP01/11/21/02 matches the analytic Bessel eigenvalue equation to < 10⁻⁶.
+- **V2**: parabolic profile. Mode-group eigenvalues $\beta^2 = k^2n_1^2 - 2kn_1\sqrt{2\Delta}\thinspace g/a$ match to < 10⁻⁵, and group $g$ contains $\lceil g/2\rceil$ LP labels. Here $k = k_0$ is the vacuum wavenumber, $g = 1, 2, \dots$ the principal mode group number, and $\lceil\cdot\rceil$ rounds up to the next integer.
 - **V3**: modes are orthonormal to < 10⁻⁶.
 - **V7**: a two-mode link with known Δτ (difference of the two modes' group delays per length, s/m) shows two peaks separated by $\Delta\tau L$ to < 0.1 ps.
 - Material unit tests: n(GeO₂ glass, 850 nm) = 1.597 (Fleming); NA 0.20 at 850 nm needs 9.2 mol% GeO₂; the doped core has more dispersion and a longer zero-dispersion wavelength than silica. The NumPy reference implements the same model independently (V15).

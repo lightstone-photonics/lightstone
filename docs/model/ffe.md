@@ -17,21 +17,21 @@ Since v0.15 the reference link includes it: `rxf → ffe → rx`, 5 taps (`rx.ff
 
 ## Equations
 
-**Filter** (`eq:ffe`): tap $c_j$ acts at delay $(j - m)\,T$, with $m$ the main cursor and $T$ the symbol period:
+**Filter** (`eq:ffe`): tap $c_j$ acts at delay $(j - m)\thinspace T$, with $m$ the main cursor and $T$ the symbol period:
 
-$$y(t) = \sum_{i=0}^{L-1} c_i\, x\big(t - (i - m)T\big),\qquad H_\text{FFE}(f) = \sum_{i} c_i\, e^{-j2\pi f (i-m)T}$$
+$$y(t) = \sum_{i=0}^{L-1} c_i\thinspace x\big(t - (i - m)T\big),\qquad H_\text{FFE}(f) = \sum_{i} c_i\thinspace e^{-j2\pi f (i-m)T}$$
 
 Here $x(t)$ is the input and $y(t)$ the output waveform, $L$ the number of taps, $i = 0, \dots, L-1$ the tap index and $c_i$ the dimensionless weight of tap $i$. The main cursor $m$ is the index of the tap with zero delay, and $T$ is in s. $H_\text{FFE}(f)$ is the equalizer's transfer function at frequency $f$ in Hz, and $j$ in its exponent is the imaginary unit.
 
-**Adaptation** (`eq:ffe-mmse`), constrained minimum mean-square error. With the noiseless symbol-rate samples $x_n$ at sampling phase $\varphi$ (a fraction of the symbol period), the targets $t_n = \bar x + \mathrm{OMA}\,(k_n - 1.5)/3$ (ideal PAM-4 levels at the input's mean $\bar x$ and outer modulation amplitude) and the noise autocorrelation $R_\ell$ at lags $\ell T$:
+**Adaptation** (`eq:ffe-mmse`), constrained minimum mean-square error. With the noiseless symbol-rate samples $x_n$ at sampling phase $\varphi$ (a fraction of the symbol period), the targets $t_n = \bar x + \mathrm{OMA}\thinspace(k_n - 1.5)/3$ (ideal PAM-4 levels at the input's mean $\bar x$ and outer modulation amplitude) and the noise autocorrelation $R_\ell$ at lags $\ell T$:
 
-$$\min_{c}\ \frac{1}{N}\sum_n\Big(\sum_j c_j\,x_{n+m-j} - t_n\Big)^2 + \sum_{i,j} c_i c_j R_{|i-j|}\qquad\text{subject to}\qquad \sum_j c_j = 1$$
+$$\min_{c}\ \frac{1}{N}\sum_n\Big(\sum_j c_j\thinspace x_{n+m-j} - t_n\Big)^2 + \sum_{i,j} c_i c_j R_{|i-j|}\qquad\text{subject to}\qquad \sum_j c_j = 1$$
 
-Here the minimum is taken over the taps $c_0, \dots, c_{L-1}$. $n = 0, \dots, N-1$ is the symbol index over the $N$ symbols of the pattern period, $k_n$ (0, 1, 2 or 3) the transmitted symbol $n$, and $\sum_j c_j\,x_{n+m-j}$ the equalizer output at symbol $n$. $i$ and $j$ are tap indices, and $\ell = |i - j|$ is the lag in symbols. $x_n$, $t_n$, $\bar x$ and OMA are in the signal's unit (V at the receiver), $R_\ell$ in its square.
+Here the minimum is taken over the taps $c_0, \dots, c_{L-1}$. $n = 0, \dots, N-1$ is the symbol index over the $N$ symbols of the pattern period, $k_n$ (0, 1, 2 or 3) the transmitted symbol $n$, and $\sum_j c_j\thinspace x_{n+m-j}$ the equalizer output at symbol $n$. $i$ and $j$ are tap indices, and $\ell = |i - j|$ is the lag in symbols. $x_n$, $t_n$, $\bar x$ and OMA are in the signal's unit (V at the receiver), $R_\ell$ in its square.
 
 The first term is the residual ISI, the second the noise after the equalizer (noise enhancement). The constraint keeps the DC gain, so the levels keep their scale. The phase $\varphi$ is the center of the range of phases with the lowest error (searched over `phases_per_ui` phases). Without the noise term (`noise_aware = false`) this is the same design as the TDECQ reference equalizer (`docs/model/tdecq.md`).
 
-**Noise autocorrelation**: from the signal's noise description (signal-spec 5), time-averaged, $R_\ell = \sum_\text{terms} g^2 \tfrac{f_s}{2}\,\bar S\,(h \star h)(\ell T)$. The sum runs over the signal's noise terms. For each term, $g$ is its gain and $h$ the discrete impulse response of the filters it has passed since generation, $\bar S$ its one-sided PSD at generation averaged over time, and $f_s$ the sampling rate in Hz. $\star$ is the circular autocorrelation over the time grid, taken at the lag $\ell T$. Noise after a nonlinear block, which is carried only as an explicit realization, enters through its periodogram.
+**Noise autocorrelation**: from the signal's noise description (signal-spec 5), time-averaged, $R_\ell = \sum_\text{terms} g^2 \tfrac{f_s}{2}\thinspace\bar S\thinspace(h \star h)(\ell T)$. The sum runs over the signal's noise terms. For each term, $g$ is its gain and $h$ the discrete impulse response of the filters it has passed since generation, $\bar S$ its one-sided PSD at generation averaged over time, and $f_s$ the sampling rate in Hz. $\star$ is the circular autocorrelation over the time grid, taken at the lag $\ell T$. Noise after a nonlinear block, which is carried only as an explicit realization, enters through its periodogram.
 
 ![Eye diagram at 100 m without and with a 5-tap FFE, and the adapted taps. Without equalization the eye is closed; with the FFE four separated levels appear.](img/ffe-eyes.svg)
 
@@ -42,7 +42,7 @@ The first term is the residual ISI, the second the noise after the equalizer (no
 - Adapted once on the noiseless waveform and the known symbols (ideal training), then fixed. No adaptation dynamics, no decision-directed operation, no tap quantization or limits.
 - Linear FFE only: no decision-feedback equalizer (DFE), no nonlinear equalization.
 - The noise term uses the time-averaged noise. Signal-dependent noise (shot, RIN) varies between levels; the design uses its mean.
-- The FFE adds a delay of up to $m\,T$ to the signal's time origin. Analyses find the delay by cross-correlation.
+- The FFE adds a delay of up to $m\thinspace T$ to the signal's time origin. Analyses find the delay by cross-correlation.
 - The receiver output (`receiver_output`) of the lane presets is not equalized. Insert the `ffe` node in front of it, or in front of an analyzer.
 
 ## Parameters

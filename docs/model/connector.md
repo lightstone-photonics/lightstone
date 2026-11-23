@@ -23,9 +23,9 @@ The connector (node kind `connector`) holds the fiber end in front of the source
 
 **Overlap integral** (`eq:coupling-overlap`) for every VCSEL mode $u$ and fiber mode $\psi_m$:
 
-$$c_m = \iint u(x - \Delta x, y)\,e^{j k_0 \sin\theta\,x}\,\psi_m(x,y)\,dx\,dy$$
+$$c_m = \iint u(x - \Delta x, y)\thinspace e^{j k_0 \sin\theta\thinspace x}\thinspace\psi_m(x,y)\thinspace dx\thinspace dy$$
 
-Here $c_m$ is the dimensionless complex amplitude coupled into fiber mode $m$, $u$ the VCSEL mode field (1/m), $\psi_m$ the real, unit-power field (1/m) of fiber mode $m$ in one orientation, and $(x, y)$ the transverse coordinates (m) on the fiber end face, centered on the core. $\Delta x$ is the radial offset (m) along $x$, $\theta$ the tilt (rad), $k_0 = 2\pi/\lambda$ the free-space wavenumber (rad/m) at the wavelength $\lambda$, and $j$ the imaginary unit; $e^{j k_0 \sin\theta\,x}$ is the linear phase of the tilted beam.
+Here $c_m$ is the dimensionless complex amplitude coupled into fiber mode $m$, $u$ the VCSEL mode field (1/m), $\psi_m$ the real, unit-power field (1/m) of fiber mode $m$ in one orientation, and $(x, y)$ the transverse coordinates (m) on the fiber end face, centered on the core. $\Delta x$ is the radial offset (m) along $x$, $\theta$ the tilt (rad), $k_0 = 2\pi/\lambda$ the free-space wavenumber (rad/m) at the wavelength $\lambda$, and $j$ the imaginary unit; $e^{j k_0 \sin\theta\thinspace x}$ is the linear phase of the tilted beam.
 
 **Mode power** (`eq:coupling-power`, `eq:launch-incoherent`):
 
@@ -33,7 +33,7 @@ $$P_m = \frac{1}{N_{u}} \sum_{u} \left(|c_{m,\cos}|^2 + |c_{m,\sin}|^2\right),\q
 
 Here $P_m$ is the fraction of the launched power in fiber mode $m$, $N_u$ the number of VCSEL modes (cos and sin orientations counted separately), the sum over $u$ runs over all VCSEL modes, and $c_{m,\cos}$, $c_{m,\sin}$ are the overlaps of $u$ with the cos and sin orientations of fiber mode $m$ (the sin term is zero for modes without azimuthal dependence). $P_\text{unguided}$ is the fraction of power that is not guided.
 
-**Encircled flux** of the guided near field: $EF(\rho) = \sum_m P_m\,\eta_m(\rho) / \sum_m P_m$, where $EF(\rho)$ is the fraction of guided power inside radius $\rho$ (m, here measured from the core center) and $\eta_m(\rho)$ is the fraction of mode $m$'s power inside radius $\rho$.
+**Encircled flux** of the guided near field: $EF(\rho) = \sum_m P_m\thinspace\eta_m(\rho) / \sum_m P_m$, where $EF(\rho)$ is the fraction of guided power inside radius $\rho$ (m, here measured from the core center) and $\eta_m(\rho)$ is the fraction of mode $m$'s power inside radius $\rho$.
 
 **Numerics**: polar quadrature on the mode solver's radial grid with an $M$-point azimuthal FFT ($M = 256$). Overlaps are normalized by the discretely integrated input power, so $\sum_m P_m \le 1$ holds exactly.
 

@@ -13,11 +13,11 @@ This is also where the optical description becomes an electrical one: for each s
 
 ## Equations
 
-**Photocurrent** (`eq:rx-photocurrent`): $I(t) = R\,P_\text{det}(t)$. Here $I(t)$ is the photocurrent in A, $R$ the responsivity in A/W and $P_\text{det}(t)$ the optical power that reaches the detector, in W. Because the fiber model is incoherent, $P_\text{det}$ is the sum of the mode powers; there are no intermodal interference terms. With several sources (WDM), $I = \sum_c R(\lambda_c)\,P_{\text{det},c}$, where $c$ runs over the sources, $\lambda_c$ is the wavelength of source $c$ and $P_{\text{det},c}$ its detected power.
+**Photocurrent** (`eq:rx-photocurrent`): $I(t) = R\thinspace P_\text{det}(t)$. Here $I(t)$ is the photocurrent in A, $R$ the responsivity in A/W and $P_\text{det}(t)$ the optical power that reaches the detector, in W. Because the fiber model is incoherent, $P_\text{det}$ is the sum of the mode powers; there are no intermodal interference terms. With several sources (WDM), $I = \sum_c R(\lambda_c)\thinspace P_{\text{det},c}$, where $c$ runs over the sources, $\lambda_c$ is the wavelength of source $c$ and $P_{\text{det},c}$ its detected power.
 
 **Responsivity spectrum** (`eq:rx-responsivity`, since v0.16; `responsivity_spectrum: "constant_qe"`, default): `responsivity` is the value at 850 nm, and the quantum efficiency η is constant, $R = \eta q\lambda/(hc_0)$ (with $q$ the elementary charge, $h$ Planck's constant and $c_0$ the speed of light):
 
-$$R(\lambda) = R_{850}\,\frac{\lambda}{850\ \text{nm}}$$
+$$R(\lambda) = R_{850}\thinspace\frac{\lambda}{850\ \text{nm}}$$
 
 Here $\lambda$ is the source wavelength in m and $R_{850}$ the responsivity at 850 nm in A/W (`responsivity`). 0.5 A/W at 850 nm (η = 73 %) gives 0.518, 0.535 and 0.553 A/W at 880, 910 and 940 nm. `"flat"` keeps $R$ the same at every wavelength.
 
@@ -25,7 +25,7 @@ Here $\lambda$ is the source wavelength in m and $R_{850}$ the responsivity at 8
 
 **Noise terms at the output** (`eq:rx-noise`), as white Gaussian current noise with one-sided PSDs:
 
-$$S_\text{shot}(t) = 2q\,I(t),\qquad S_\text{RIN}(t) = R^2\,\mathrm{RIN}\cdot P_\text{tx}(t)^2 \ \text{(through the channel)}$$
+$$S_\text{shot}(t) = 2q\thinspace I(t),\qquad S_\text{RIN}(t) = R^2\thinspace\mathrm{RIN}\cdot P_\text{tx}(t)^2 \ \text{(through the channel)}$$
 
 Here $S_\text{shot}(t)$ is the shot noise PSD in A²/Hz, generated here with the receiver's seed, with $q$ the elementary charge and $I(t)$ the noiseless photocurrent. $S_\text{RIN}(t)$ is the current PSD of the transmitter's intensity noise: the VCSEL's RIN realization (`vcsel.md`, `eq:vcsel-rin`; RIN in 1/Hz, $P_\text{tx}(t)$ the transmitted power in W) passes the same channel transfer function as the signal and is scaled by the responsivity $R$ of its source. Transmitter jitter noise (`driver.md`) is carried the same way. With several sources there is one RIN (and jitter) term per source. Each term keeps its strength and filter, so the noise after later linear blocks stays exact (`bessel-thomson.md`).
 
@@ -52,4 +52,4 @@ Here $S_\text{shot}(t)$ is the shot noise PSD in A²/Hz, generated here with the
 
 - **V10**: with a constant optical input, the output noise variance after the receive filter equals $(i_n^2 + 2qI)B_n$ to < 1 %, with $I$ the constant photocurrent ($i_n$ and $B_n$: `tia.md`, `bessel-thomson.md`).
 - **V15**: the detected optical power and the noiseless receiver waveform agree with the NumPy reference.
-- **V17a** (`wdm-demux.md`): the mean photocurrent equals $R(\lambda)\,P_\text{det}$ for each SWDM4 channel.
+- **V17a** (`wdm-demux.md`): the mean photocurrent equals $R(\lambda)\thinspace P_\text{det}$ for each SWDM4 channel.

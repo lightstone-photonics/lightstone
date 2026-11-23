@@ -216,6 +216,18 @@ const QUANTITY_UNIT = { current: 'A', voltage: 'V', dimensionless: '' };
  * optical "−1.23 dBm"; electrical "mean 1.2 mV · swing 40 mV · noise 1.1 mV rms";
  * data "8191 symbols".
  */
+/**
+ * Plain-language signal type of a port type string ('optical', 'data', 'electrical',
+ * 'electrical (voltage)', …): { domain, label, detail }.
+ */
+export function portKind(ty) {
+  const q = ty.startsWith('electrical (') ? ty.slice('electrical ('.length, -1) : null;
+  if (ty === 'optical') return { domain: 'optical', label: 'Optical', detail: 'optical power, per fiber mode [W]' };
+  if (ty === 'data') return { domain: 'data', label: 'Data', detail: 'symbol stream (PAM-4 or NRZ), no noise' };
+  const QD = { voltage: 'voltage [V]', current: 'current [A]', dimensionless: 'drive signal (dimensionless)' };
+  return { domain: 'electrical', label: 'Electrical', detail: q ? QD[q] ?? q : 'any: voltage, current or drive' };
+}
+
 export function portText(s) {
   if (!s) return '';
   switch (s.type) {

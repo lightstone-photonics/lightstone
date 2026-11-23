@@ -1,6 +1,11 @@
 <script>
-  /** @type {{ doc: any, live: Array<[string, string]> }} */
-  let { doc, live } = $props();
+  import { portKind } from './graph/catalog.js';
+  /** @type {{ doc: any, live: Array<[string, string]>, ports?: { inputs: any[], outputs: any[] } }} */
+  let { doc, live, ports = null } = $props();
+  const portRows = $derived(ports ? [
+    ...ports.inputs.map((p) => ({ dir: 'Input', ...p })),
+    ...ports.outputs.map((p) => ({ dir: 'Output', ...p })),
+  ] : []);
   let open = $state(true);
 </script>
 
@@ -12,6 +17,23 @@
         {open ? 'Hide' : 'Show'} equations
       </button>
     </header>
+
+    {#if portRows.length}
+      <table class="ports" aria-label="Ports: what goes in and comes out">
+        <caption>Ports</caption>
+        <thead><tr><th scope="col">Port</th><th scope="col">Direction</th><th scope="col">Signal</th></tr></thead>
+        <tbody>
+          {#each portRows as p}
+            {@const k = portKind(p.type)}
+            <tr>
+              <th scope="row"><code>{p.name}</code></th>
+              <td>{p.dir}{p.monitor ? ' (monitor: observes only)' : ''}</td>
+              <td><span class="sig {k.domain}"><span class="pdot"></span>{k.label}</span> <span class="detail">{k.detail}</span></td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    {/if}
 
     {#if live?.length}
       <table class="live" aria-label="Live values">
@@ -82,6 +104,44 @@
   button:focus-visible {
     outline: 2px solid #f6a03a;
   }
+  .ports {
+    border-collapse: collapse;
+    margin: 0.2rem 0 0.8rem;
+    width: 100%;
+    font-size: 0.85rem;
+  }
+  .ports caption {
+    text-align: left;
+    font-weight: 600;
+    color: #f6a03a;
+    margin-bottom: 0.2rem;
+  }
+  .ports th,
+  .ports td {
+    text-align: left;
+    padding: 0.15rem 0.6rem 0.15rem 0;
+    vertical-align: top;
+  }
+  .ports thead th {
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: #8a93a8;
+  }
+  .ports tbody th {
+    font-weight: 400;
+  }
+  .sig {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 600;
+  }
+  .sig.optical { color: #f08a5d; }
+  .sig.electrical { color: #6cb6ff; }
+  .sig.data { color: #c9d1e0; }
+  .pdot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: currentColor; }
+  .sig.data .pdot { border-radius: 1px; }
+  .detail { color: #aab3c5; }
   .live {
     margin: 0.7rem 0;
     border-collapse: collapse;

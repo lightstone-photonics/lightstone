@@ -13,7 +13,7 @@ An electrical gain and delay block, written in Rust as a template for your own c
 
 **Transfer function** (`eq:rust-example`):
 
-$$y(t) = g\,x(t - \tau),\qquad H(f) = g\,e^{-j2\pi f\tau}$$
+$$y(t) = g\thinspace x(t - \tau),\qquad H(f) = g\thinspace e^{-j2\pi f\tau}$$
 
 Here $x(t)$ is the input and $y(t)$ the output waveform at time $t$ (s), both in the unit of the wire (V after the TIA, A after the photodiode). $g$ is the dimensionless gain (`gain`, default 1), $\tau$ the delay in s (`delay`, default 0), $H(f)$ the transfer function at frequency $f$ (Hz) and $j$ the imaginary unit.
 
@@ -106,5 +106,5 @@ The factory receives the node's `params` and a `NodeInfo` (node id and graph set
 
 ## Validation
 
-- Unit tests in `example.rs`: the defaults give $H(f) = 1$; $H(f) = g\,e^{-j2\pi f\tau}$ and $H(-f) = H(f)^*$ to 10⁻¹⁵; invalid parameters are rejected; inserted into the reference link between the receive filter and the FFE, the defaults leave the FFE output bit-identical, and gain 0.5 halves the noiseless waveform and σ(t) to 10⁻¹².
+- Unit tests in `example.rs`: the defaults give $H(f) = 1$; $H(f) = g\thinspace e^{-j2\pi f\tau}$ and $H(-f) = H(f)^*$ to 10⁻¹⁵; invalid parameters are rejected; inserted into the reference link between the receive filter and the FFE, the defaults leave the FFE output bit-identical, and gain 0.5 halves the noiseless waveform and σ(t) to 10⁻¹².
 - `tests/python/test_graph.py`: the Rust example and the Python example component (`example-component.md`) give the same receiver output.

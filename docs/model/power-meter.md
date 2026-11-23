@@ -13,7 +13,7 @@ An optical power meter (node kind `power_meter`): it reports the average optical
 
 **Average power** (`eq:power-meter`): the time average of the optical power with all light collected, summed over all source contributions,
 
-$$\bar P = \frac{1}{T_\text{p}}\int_0^{T_\text{p}} \sum_\text{sources}\sum_k P_k(t)\,dt$$
+$$\bar P = \frac{1}{T_\text{p}}\int_0^{T_\text{p}} \sum_\text{sources}\sum_k P_k(t)\thinspace dt$$
 
 Here $\bar P$ is the average optical power (W) that the meter reports, $T_\text{p}$ one simulation period (s), $t$ time, the outer sum runs over all source contributions (e.g. several lasers joined by a combiner), and $k$ runs over the mode bins of a contribution, with $P_k(t)$ the power (W) in mode bin $k$.
 

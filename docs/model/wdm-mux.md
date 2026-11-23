@@ -15,7 +15,7 @@ A WDM multiplexer (node kind `wdm_mux`): N inputs (`in0` … `inN−1`), one per
 
 **Combining**: the weighted contributions of all inputs are kept separate on the output, like the `combiner` (`combiner.md`): different lasers are mutually incoherent, so they add as powers at the detector.
 
-$$P_\text{out}(t) = \sum_i \sum_{c \in \text{in}_i} T_i(\lambda_c)\,P_c(t)$$
+$$P_\text{out}(t) = \sum_i \sum_{c \in \text{in}_i} T_i(\lambda_c)\thinspace P_c(t)$$
 
 Here $P_\text{out}(t)$ is the output optical power (W), $i$ runs over the input ports, $c$ over the source contributions at input $i$, $\lambda_c$ is the centre wavelength of source $c$ and $P_c(t)$ its power at the input (W).
 

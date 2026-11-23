@@ -21,7 +21,7 @@ Here $P_k$ is the optical power (W) of level $k = 0 \dots M-1$, $M$ the number o
 
 **Drive to power**: the normalized drive $d(t)$ from the driver (0 for the lowest, 1 for the highest level; $t$ is time in s) gives the optical power
 
-$$P(t) = \max\negthinspace\Big(0,\ \mathcal{F}^{-1}\big\lbrace H_V(f)\thinspace\mathcal{F}\lbrace P_0 + (P_{M-1} - P_0)\thinspace d\rbrace(f)\big\rbrace(t)\Big)$$
+$$P(t) = \max\mskip-3mu \Big(0,\ \mathcal{F}^{-1}\big\lbrace H_V(f)\thinspace\mathcal{F}\lbrace P_0 + (P_{M-1} - P_0)\thinspace d\rbrace(f)\big\rbrace(t)\Big)$$
 
 Here $P(t)$ is the transmitted optical power (W), $\mathcal{F}$ and $\mathcal{F}^{-1}$ are the Fourier transform and its inverse (FFTs on the time grid), and $H_V(f)$ is the modulation response below. Power cannot be negative, so it is clipped at 0 W; with the default parameters this never happens, but it makes the node formally nonlinear. Noise terms of the drive (transmitter jitter, `driver.md`) are converted to optical power noise with $(P_{M-1} - P_0)\thinspace H_V(f)$ and then carried like RIN.
 
@@ -45,7 +45,7 @@ white up to $f_s/2$. Here $S_P$ is the power spectral density of the noise (W²/
 
 **VCSEL near field** (`eq:launch-lg`): an incoherent, equal-power mixture of the lowest $Q$ Laguerre–Gauss mode groups ($2p + l = q - 1$, $q = 1 \dots Q$):
 
-$$u_{pl}(\rho,\phi) = \frac{C_{pl}}{w}\left(\frac{\sqrt2\rho}{w}\right)^{l} L_p^{l}\negthinspace\left(\frac{2\rho^2}{w^2}\right) e^{-\rho^2/w^2}\thinspace\lbrace\cos,\sin\rbrace(l\phi)$$
+$$u_{pl}(\rho,\phi) = \frac{C_{pl}}{w}\left(\frac{\sqrt2\rho}{w}\right)^{l} L_p^{l}\mskip-3mu \left(\frac{2\rho^2}{w^2}\right) e^{-\rho^2/w^2}\thinspace\lbrace\cos,\sin\rbrace(l\phi)$$
 
 Each mode is normalized to unit power, and $(\rho, \phi)$ are measured from the beam center (at the connector's offset $\Delta x$, `connector.md`). Here $q$ is the mode group index, $Q$ the number of groups, $p \ge 0$ the radial and $l \ge 0$ the azimuthal mode index, $\rho$ the radial distance (m) and $\phi$ the azimuth angle (rad), $w$ the beam radius (m, the radius where the fundamental field falls to $1/e$), $L_p^{l}$ the generalized Laguerre polynomial, and $C_{pl}$ the dimensionless constant that gives the mode unit power. $\lbrace\cos,\sin\rbrace(l\phi)$ means that each mode with $l > 0$ comes in a cos and a sin orientation, counted as two modes; $l = 0$ has only one.
 

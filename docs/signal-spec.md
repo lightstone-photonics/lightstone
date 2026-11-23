@@ -78,7 +78,7 @@ A wire fed by one VCSEL has one contribution. Behind a combiner of four VCSELs i
 
 The waveform it stands for is
 
-$$P_k(t) = \mathcal{F}^{-1}\Big\lbrace \hat P_\text{tx}(f)\thickspace w_k\thinspace e^{-j2\pi f \tau_k}\thinspace e^{-2\pi^2 f^2 \sigma_k^2}\thinspace H_\text{extra}(f) \Big\rbrace$$
+$$P_k(t) = \mathcal{F}^{-1}\Big\lbrace \hat P_\text{tx}(f)\mskip5mu w_k\thinspace e^{-j2\pi f \tau_k}\thinspace e^{-2\pi^2 f^2 \sigma_k^2}\thinspace H_\text{extra}(f) \Big\rbrace$$
 
 Nothing is computed yet; a lazy signal costs a few kilobytes.
 

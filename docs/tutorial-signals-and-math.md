@@ -157,7 +157,7 @@ That is the **`Power` level** of an optical signal: one power value per mode (or
 
 The **degree of coherence** γ(Δτ) measures this, between 1 (perfect interference) and 0 (powers simply add). The detected power of the two recombined copies, with phase difference Δφ, is
 
-$$P = P_1 + P_2 + 2\sqrt{P_1 P_2}\thickspace\gamma(\Delta\tau)\cos\Delta\varphi$$
+$$P = P_1 + P_2 + 2\sqrt{P_1 P_2}\mskip5mu \gamma(\Delta\tau)\cos\Delta\varphi$$
 
 The last term is the interference term; γ scales it.
 
@@ -238,7 +238,7 @@ D ≈ −93 ps/(nm·km) is the dispersion of the launched modes at 850 nm: the f
 
 The fiber turns into one transfer function acting on optical power:
 
-$$H_\text{fiber}(f) = \sum_k w_k\thickspace\underbrace{e^{-j2\pi f\tau_k}}_{\text{delay}}\thickspace\underbrace{e^{-2\pi^2 f^2\sigma_k^2}}_{\text{chromatic broadening}}$$
+$$H_\text{fiber}(f) = \sum_k w_k\mskip5mu \underbrace{e^{-j2\pi f\tau_k}}_{\text{delay}}\mskip5mu \underbrace{e^{-2\pi^2 f^2\sigma_k^2}}_{\text{chromatic broadening}}$$
 
 ### Worked example: two modes
 
@@ -303,17 +303,17 @@ The decision circuit samples once per symbol at the best phase and compares with
 
 For Gaussian noise, the probability of crossing a threshold at distance d from the sample is
 
-$$Q\negthinspace\left(\frac{d}{\sigma}\right),\qquad Q(x) = \tfrac12\thinspace\mathrm{erfc}\negthinspace\left(\tfrac{x}{\sqrt2}\right)$$
+$$Q\mskip-3mu \left(\frac{d}{\sigma}\right),\qquad Q(x) = \tfrac12\thinspace\mathrm{erfc}\mskip-3mu \left(\tfrac{x}{\sqrt2}\right)$$
 
 Lightstone's **semi-analytic SER** applies this to every one of the 8191 noiseless samples y_n with its own σ_n:
 
-$$\mathrm{SER} = \frac1N\sum_n\left[Q\negthinspace\left(\frac{y_n - \theta_{k_n - 1}}{\sigma_n}\right) + Q\negthinspace\left(\frac{\theta_{k_n} - y_n}{\sigma_n}\right)\right]$$
+$$\mathrm{SER} = \frac1N\sum_n\left[Q\mskip-3mu \left(\frac{y_n - \theta_{k_n - 1}}{\sigma_n}\right) + Q\mskip-3mu \left(\frac{\theta_{k_n} - y_n}{\sigma_n}\right)\right]$$
 
 This includes ISI exactly (each sample has its own position) and resolves SERs like 10⁻¹⁵, far below what counting errors in 8191 symbols could show.
 
 Sanity check (validation test V12): for ideal levels with spacing d and constant σ the formula reduces to
 
-$$\mathrm{SER} = \tfrac32\thinspace Q\negthinspace\left(\frac{d}{2\sigma}\right)$$
+$$\mathrm{SER} = \tfrac32\thinspace Q\mskip-3mu \left(\frac{d}{2\sigma}\right)$$
 
 ### 8.2 TDECQ in one paragraph
 
@@ -341,7 +341,7 @@ Suppose the TIA clips its output at ±0.5 V: y = clip(x).
 
 **Superposition fails:**
 
-$$\mathrm{clip}(0.4\thinspace\text{V} + 0.3\thinspace\text{V}) = 0.5\ \text{V} \thickspace\neq\thickspace \mathrm{clip}(0.4\thinspace\text{V}) + \mathrm{clip}(0.3\thinspace\text{V}) = 0.7\ \text{V}$$
+$$\mathrm{clip}(0.4\thinspace\text{V} + 0.3\thinspace\text{V}) = 0.5\ \text{V} \mskip5mu \neq\mskip5mu \mathrm{clip}(0.4\thinspace\text{V}) + \mathrm{clip}(0.3\thinspace\text{V}) = 0.7\ \text{V}$$
 
 Consequences:
 

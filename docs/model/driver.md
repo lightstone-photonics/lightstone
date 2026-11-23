@@ -24,7 +24,7 @@ Here $k$ is the symbol value and $M$ the number of levels (4 for PAM-4: 0, ⅓, 
 
 **Drive waveform** (`eq:tx-nrz`): the continuous NRZ-hold waveform
 
-$$d(t) = \sum_n L_{k_n}\thinspace\mathrm{rect}\negthinspace\left(\frac{t}{T} - n - \tfrac12\right)$$
+$$d(t) = \sum_n L_{k_n}\thinspace\mathrm{rect}\mskip-3mu \left(\frac{t}{T} - n - \tfrac12\right)$$
 
 is represented by its exact spectrum on the simulation grid,
 
@@ -36,7 +36,7 @@ This is the alias-free sampled version of the continuous drive: results do not d
 
 **Edge shifts** (`eq:tx-jitter`). The edge into symbol $n$, with step $\Delta_n = L_{k_n} - L_{k_{n-1}}$, moves by
 
-$$\tau_n = -\operatorname{sign}(\Delta_n)\thinspace\frac{\mathrm{DCD}}{2} + A_\text{SJ}\thinspace\lvert H_\text{J}(f_\text{SJ})\rvert\thinspace\sin\negthinspace\big(2\pi f_\text{SJ}\thinspace nT + \arg H_\text{J}(f_\text{SJ})\big),\qquad H_\text{J}(f) = \frac{jf}{f_c + jf}$$
+$$\tau_n = -\operatorname{sign}(\Delta_n)\thinspace\frac{\mathrm{DCD}}{2} + A_\text{SJ}\thinspace\lvert H_\text{J}(f_\text{SJ})\rvert\thinspace\sin\mskip-3mu \big(2\pi f_\text{SJ}\thinspace nT + \arg H_\text{J}(f_\text{SJ})\big),\qquad H_\text{J}(f) = \frac{jf}{f_c + jf}$$
 
 Here $\Delta_n$ is the dimensionless level step at the edge into symbol $n$; $\operatorname{sign}(\Delta_n)$ is $+1$ for a rising and $-1$ for a falling edge. $\tau_n$ is the time shift of the edge (s, negative = early), DCD the duty-cycle distortion (s, peak-to-peak), $A_\text{SJ}$ the SJ peak amplitude (s), $f_\text{SJ}$ the SJ frequency (Hz), $T = 1/f_\text{baud}$ the symbol period (s) with symbol rate $f_\text{baud}$ (Bd), $f$ the jitter frequency (Hz) and $j$ the imaginary unit. $\lvert H_\text{J}\rvert$ and $\arg H_\text{J}$ scale and phase-shift the SJ.
 

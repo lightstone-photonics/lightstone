@@ -13,7 +13,7 @@ An optical bandpass filter (node kind `bandpass_filter`): it passes the light at
 
 **Passband** (`eq:wdm-passband`), centre $\lambda_c$, −3 dB full width $w$, order $n$, insertion loss IL, isolation ISO:
 
-$$T(\lambda) = 10^{-\mathrm{IL}/10}\thinspace\max\negthinspace\Big(\exp\negthinspace\big[-\ln 2\thinspace\big|2(\lambda - \lambda_c)/w\big|^{2n}\big],\ 10^{-\mathrm{ISO}/10}\Big)$$
+$$T(\lambda) = 10^{-\mathrm{IL}/10}\thinspace\max\mskip-3mu \Big(\exp\mskip-3mu \big[-\ln 2\thinspace\big|2(\lambda - \lambda_c)/w\big|^{2n}\big],\ 10^{-\mathrm{ISO}/10}\Big)$$
 
 Here $T(\lambda)$ is the power transmission (linear, 0 to 1) at the wavelength $\lambda$ in m, $\lambda_c$ the centre wavelength in m, $w$ the −3 dB full width in m, $n$ the dimensionless order, and IL and ISO the insertion loss and isolation in dB. The first factor sets the loss at the peak; the $\max$ keeps the transmission from falling below the isolation floor.
 

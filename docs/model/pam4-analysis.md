@@ -25,7 +25,7 @@ Inputs: `in` (electrical) and `ref`, the transmitted symbols from the pattern so
 
 **Semi-analytic SER** (`eq:pam4-ser-semi-analytic`). This is the primary estimate. It includes ISI exactly and assumes Gaussian noise:
 
-$$\mathrm{SER} = \frac1N\sum_n\left[Q\negthinspace\left(\frac{y_{0,n} - \theta_{k_n-1}}{\sigma_n}\right) + Q\negthinspace\left(\frac{\theta_{k_n} - y_{0,n}}{\sigma_n}\right)\right]$$
+$$\mathrm{SER} = \frac1N\sum_n\left[Q\mskip-3mu \left(\frac{y_{0,n} - \theta_{k_n-1}}{\sigma_n}\right) + Q\mskip-3mu \left(\frac{\theta_{k_n} - y_{0,n}}{\sigma_n}\right)\right]$$
 
 Here $N$ is the number of analyzed symbols and $n$ the symbol index. $k_n$ is the transmitted level of symbol $n$, $y_{0,n}$ its noiseless sample at the optimal phase and $\sigma_n$ the RMS noise at that sample (from the noise model σ(t)). The first term is the probability that noise pushes the sample below its lower threshold, the second above its upper threshold.
 
@@ -33,11 +33,11 @@ Missing thresholds for the outer levels are dropped, and $Q(x) = \tfrac12\thinsp
 
 **Level-Gaussian SER** (`eq:pam4-ser-gaussian`), with ISI lumped into $\sigma_k$:
 
-$$\mathrm{SER}_G = \frac1M\sum_k\left[Q\negthinspace\left(\frac{\hat\mu_k - \theta_{k-1}}{\hat\sigma_k}\right) + Q\negthinspace\left(\frac{\theta_k - \hat\mu_k}{\hat\sigma_k}\right)\right]$$
+$$\mathrm{SER}_G = \frac1M\sum_k\left[Q\mskip-3mu \left(\frac{\hat\mu_k - \theta_{k-1}}{\hat\sigma_k}\right) + Q\mskip-3mu \left(\frac{\theta_k - \hat\mu_k}{\hat\sigma_k}\right)\right]$$
 
 Here $\hat\mu_k$ and $\hat\sigma_k$ are the mean and standard deviation of the noisy samples of level $k$ at the optimal phase (not the noiseless $\mu_k$ of the thresholds), and the sum runs over the $M$ levels $k$. Each level is treated as one Gaussian.
 
-For ideal equally spaced levels with spacing $d$ (the distance between adjacent level means) and the same noise standard deviation $\sigma$ on every level, this reduces to $\mathrm{SER} = \tfrac{2(M-1)}{M}\thinspace Q\negthinspace\left(\tfrac{d}{2\sigma}\right)$: $\tfrac32 Q$ for PAM-4, $Q$ for NRZ.
+For ideal equally spaced levels with spacing $d$ (the distance between adjacent level means) and the same noise standard deviation $\sigma$ on every level, this reduces to $\mathrm{SER} = \tfrac{2(M-1)}{M}\thinspace Q\mskip-3mu \left(\tfrac{d}{2\sigma}\right)$: $\tfrac32 Q$ for PAM-4, $Q$ for NRZ.
 
 **BER** $\approx$ SER/2 for Gray-coded PAM-4 (a symbol error almost always flips one of its two bits); BER = SER for NRZ.
 

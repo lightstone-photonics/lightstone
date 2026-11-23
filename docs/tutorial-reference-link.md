@@ -505,7 +505,7 @@ How it works:
 3. It sets the thresholds halfway between the level means.
 4. It computes the **semi-analytic SER**: for each of the 8191 noiseless samples y_n with its own σ_n, the Gaussian probability of falling beyond a threshold (`eq:pam4-ser-semi-analytic`):
 
-$$\mathrm{SER} = \frac1N\sum_n\left[Q\negthinspace\left(\frac{y_n - \theta_{k_n-1}}{\sigma_n}\right) + Q\negthinspace\left(\frac{\theta_{k_n} - y_n}{\sigma_n}\right)\right]$$
+$$\mathrm{SER} = \frac1N\sum_n\left[Q\mskip-3mu \left(\frac{y_n - \theta_{k_n-1}}{\sigma_n}\right) + Q\mskip-3mu \left(\frac{\theta_{k_n} - y_n}{\sigma_n}\right)\right]$$
 
 This includes the ISI exactly and reaches SERs far below 1/8191. The eye heights and widths are measured on the noisy realization, at the 10⁻³ probability contour.
 

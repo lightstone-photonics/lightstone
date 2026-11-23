@@ -25,7 +25,7 @@ Here $S_\text{th}$ is the thermal noise PSD in A²/Hz and $i_n$ the input-referr
 
 **Output clipping** (`eq:tia-clip`, optional). With limits $[u_\text{lo}, u_\text{hi}]$:
 
-$$u(t) = \min\negthinspace\big(\max\big(Z\thinspace(I(t) + i_\text{noise}(t)),\ u_\text{lo}\big),\ u_\text{hi}\big)$$
+$$u(t) = \min\mskip-3mu \big(\max\big(Z\thinspace(I(t) + i_\text{noise}(t)),\ u_\text{lo}\big),\ u_\text{hi}\big)$$
 
 applied to the noiseless and to the noisy waveform. Here $u_\text{lo}$ and $u_\text{hi}$ are the lower and upper output limits in V, $I(t)$ the noiseless input current in A and $i_\text{noise}(t)$ the realization of all input noise current (shot, RIN, thermal) in A ($i_\text{noise} = 0$ for the noiseless waveform). The noise arises before the clipper, so after it the noise is no longer Gaussian: σ(t) no longer describes it, and the SER must be counted (Monte Carlo, resolution 1/N_sym, with N_sym the number of simulated symbols). The node warns how many samples were clipped.
 

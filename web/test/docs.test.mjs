@@ -35,7 +35,7 @@ test('one model doc per component kind (docs/architecture.md, 5.1)', async () =>
 
 test('formulas survive GitHub Markdown (no \\{ \\} \\, \\; \\! inside $…$)', () => {
   // GitHub applies Markdown backslash escapes inside math: \{ becomes {, \, becomes a comma.
-  // Use \lbrace, \rbrace, \thinspace, \thickspace, \negthinspace instead.
+  // Use \lbrace, \rbrace, \thinspace, \mskip5mu, \mskip-3mu instead.
   const docs = [new URL('../../docs/', import.meta.url), dir];
   for (const d of docs) {
     for (const f of readdirSync(d).filter((x) => x.endsWith('.md'))) {
@@ -43,6 +43,8 @@ test('formulas survive GitHub Markdown (no \\{ \\} \\, \\; \\! inside $…$)', (
       for (const m of s.matchAll(/\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g)) {
         const t = m[1] ?? m[2];
         assert.ok(!/\\[{},;!]/.test(t), `${f}: ${t.slice(0, 60)}`);
+        // GitHub's math renderer does not know \thickspace (shown as text): use \mskip5mu.
+        assert.ok(!/\\(thickspace|negthinspace)/.test(t), `${f}: ${t.slice(0, 60)}`);
       }
     }
   }

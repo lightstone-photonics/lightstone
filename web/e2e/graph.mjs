@@ -63,6 +63,12 @@ await page.click('button.menubtn');
 let before0 = await status();
 await page.click('.dropdown button:has-text("Reference link (bare)")');
 console.log('reference:', await computed(before0));
+// The canvas redraws nodes and wires after the run: wait until the new graph is on screen
+// (the start page had 12 nodes and 14 wires), instead of counting a half-drawn canvas.
+const settled = await page.waitForFunction(
+  () => document.querySelectorAll('.svelte-flow__node-component').length === 10 && document.querySelectorAll('.svelte-flow__edge').length === 10,
+  null, { timeout: 15000 }).then(() => true, () => false);
+if (!settled) console.log('canvas did not settle:', await page.locator('.svelte-flow__node-component').count(), 'nodes,', await page.locator('.svelte-flow__edge').count(), 'wires');
 check((await page.locator('.svelte-flow__node-component').count()) === 10, 'reference link shows 10 nodes (with the receiver FFE)');
 check((await page.locator('.svelte-flow__node-frame').count()) === 4, 'and the 4 zone frames (Transmitter, Channel, Receiver front end, Data recovery)');
 check((await page.locator('.svelte-flow__edge').count()) === 10, 'and 10 wires (FFE input, reference and output)');

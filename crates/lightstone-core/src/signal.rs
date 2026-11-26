@@ -59,8 +59,11 @@ pub struct Settings {
     pub baud: f64,
     /// Samples per symbol.
     pub sps: usize,
-    /// Number of PRBS13Q periods (8191 symbols each).
+    /// Number of pattern periods on the grid.
     pub pattern_periods: usize,
+    /// Symbols per pattern period: 8191 (PRBS13Q / PRBS13, default) or 65 535 (SSPRQ). Must
+    /// match the pattern source's pattern.
+    pub pattern_length: usize,
     pub resolution: Resolution,
     /// Level at which sources emit.
     pub level: Level,
@@ -76,6 +79,7 @@ impl Default for Settings {
             baud: 53.125e9,
             sps: 16,
             pattern_periods: 1,
+            pattern_length: PATTERN_PERIOD,
             resolution: Resolution::ModeGroup,
             level: Level::Power,
             seed: 0,
@@ -97,7 +101,7 @@ impl TimeGrid {
         Self {
             baud: s.baud,
             sps: s.sps.max(1),
-            n_symbols: PATTERN_PERIOD * s.pattern_periods.max(1),
+            n_symbols: s.pattern_length.max(1) * s.pattern_periods.max(1),
         }
     }
 

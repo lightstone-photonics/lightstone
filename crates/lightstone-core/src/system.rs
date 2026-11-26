@@ -321,6 +321,7 @@ pub fn lane_graph(cfg: &LaneConfig, resolution: Resolution, level: Level) -> Gra
             baud: cfg.tx.baud,
             sps: cfg.tx.sps,
             pattern_periods: cfg.tx.pattern_periods,
+            pattern_length: crate::signal::PATTERN_PERIOD,
             resolution,
             level,
             seed: cfg.seed,

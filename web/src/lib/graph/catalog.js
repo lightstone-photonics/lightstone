@@ -93,6 +93,7 @@ export const SPECS = {
     s('gain', 'Gain g', '', 0, 2, 0.01, 2),
     s('delay', 'Delay τ', 'ps', 0, 20, 0.1, 1, 1e-12),
   ],
+  tdecq: [s('ffe_taps', 'Reference FFE taps (1 = none)', '', 1, 15, 2, 0)],
   pam4_analyzer: [s('clock_rj_rms_ui', 'Receiver clock jitter (RMS)', 'mUI', 0, 50, 0.5, 1, 1e-3)],
   vcsel: [
     s('p_avg_dbm', 'Average power', 'dBm', -8, 4, 0.1, 1),
@@ -344,6 +345,7 @@ export function display(kind, params, r) {
         main: { label: 'TDECQ', value: r.tdecq_db === null ? 'CLOSED' : fmt(r.tdecq_db), unit: r.tdecq_db === null ? '' : 'dB' },
         rows: [
           ['C_eq', `${fmt(r.ceq_db)} dB`],
+          ['Taps', `${r.taps.length}${r.taps.length === 1 ? ' (no EQ)' : ''}`],
           ['OMA', r.oma_outer > 0 ? `${(10 * Math.log10(r.oma_outer / 1e-3)).toFixed(2)} dBm` : '—'],
         ],
       };
@@ -384,7 +386,7 @@ export function trace(kind, r) {
 export function badge(kind, params, r) {
   switch (kind) {
     case 'prbs13q':
-      return (params.levels ?? 4) === 2 ? 'NRZ (PRBS13)' : 'PAM-4 (PRBS13Q)';
+      return (params.levels ?? 4) === 2 ? 'NRZ (PRBS13)' : params.pattern === 'ssprq' ? 'PAM-4 (SSPRQ, unverified)' : 'PAM-4 (PRBS13Q)';
     case 'mmf':
       return `${fmt(params.length ?? 100, 0)} m · ${(params.type ?? 'om4').toUpperCase()}${r?.emb_length ? ` · EMB ${mhzkm(r.emb_length)}` : ''}`;
     case 'custom_fiber':

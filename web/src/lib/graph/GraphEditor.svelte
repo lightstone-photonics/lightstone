@@ -420,6 +420,18 @@
       for (const k of sp.path.split('.').slice(0, -1)) o = o[k] ??= {};
     }
   }
+  /** Pattern source: pattern and alphabet; SSPRQ also sets the grid's symbols per period. */
+  function setPattern(v) {
+    ensureParams(node);
+    node.params.levels = v === 'nrz' ? 2 : 4;
+    node.params.pattern = v === 'ssprq' ? 'ssprq' : 'prbs13q';
+    const len = v === 'ssprq' ? 65535 : 8191;
+    if ((graph.settings.pattern_length ?? 8191) !== len) {
+      graph.settings.pattern_length = len;
+      message = `Simulation grid set to ${len} symbols per pattern period.`;
+    }
+    changed();
+  }
   function setSwitch(key, v) {
     node.params[key] = v;
     paramsText = JSON.stringify(node.params, null, 2);
@@ -782,12 +794,14 @@
             </label>
           {/if}
           {#if node.kind === 'prbs13q'}
-            <label class="row">Modulation
-              <select value={node.params.levels ?? 4} onchange={(e) => setSwitch('levels', Number(e.currentTarget.value))}>
-                <option value={4}>PAM-4 (PRBS13Q)</option>
-                <option value={2}>NRZ (PRBS13)</option>
+            <label class="row">Pattern
+              <select value={(node.params.levels ?? 4) === 2 ? 'nrz' : (node.params.pattern ?? 'prbs13q')} onchange={(e) => setPattern(e.currentTarget.value)}>
+                <option value="prbs13q">PAM-4, PRBS13Q (8191 symbols)</option>
+                <option value="ssprq">PAM-4, SSPRQ (65 535 symbols, unverified)</option>
+                <option value="nrz">NRZ, PRBS13 (8191 bits)</option>
               </select>
             </label>
+            {#if node.params.pattern === 'ssprq'}<p class="hint">SSPRQ sets the grid to 65 535 symbols per period (8 × longer runs). Its construction follows the public IEEE 802.3bs contributions and is not yet checked against the standard (see the model doc).</p>{/if}
           {/if}
           {#if node.kind === 'tia'}
             <label class="check"><input type="checkbox" checked={!!node.params.clip}

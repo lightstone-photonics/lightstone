@@ -12,7 +12,7 @@ Companion documents: [`signal-spec.md`](signal-spec.md) (signal definitions), [`
 
 | Block | Key parameters (defaults) |
 |---|---|
-| Transmitter | 53.125 GBd PAM-4, PRBS13Q, Gray coding (NRZ with PRBS13 as an option, `levels: 2`, since v0.11) |
+| Transmitter | 53.125 GBd PAM-4, PRBS13Q, Gray coding (SSPRQ as an option, unverified; NRZ with PRBS13, `levels: 2`) |
 | VCSEL | 850 nm, RMS spectral width 0.4 nm, 2nd-order response (f_r, damping), RIN −140 dB/Hz, average power, ER/OMA |
 | Connector | Radial offset Δr, tilt θ |
 | Fiber | OM4, 50 µm core, NA 0.20, graded index (α ≈ 2), length 0–150 m |
@@ -71,7 +71,7 @@ Rules:
 
 ### 3.1 Transmitter (intensity modulation)
 
-1. PRBS13Q → Gray-coded PAM-4 symbols s ∈ {0, 1, 2, 3}.
+1. PRBS13Q (or SSPRQ, `docs/model/prbs-pattern.md`) → Gray-coded PAM-4 symbols s ∈ {0, 1, 2, 3}.
 2. Map to optical power levels from average power P_avg and extinction ratio ER (levels equally spaced in power).
 3. Apply the VCSEL small-signal response (2nd-order: resonance frequency f_r, damping γ) to the power waveform.
 4. Add RIN as level-dependent Gaussian noise on optical power.
@@ -120,7 +120,7 @@ A coherent mode (per-mode complex envelopes, partial detector illumination) for 
 
 - Integer oversampling: 16 samples/symbol by default (850 GS/s at 53.125 GBd); the browser uses 8. The NRZ drive is generated band-limited from its exact spectrum, so 8/16/32 samples per UI agree to < 0.002 dB TDECQ.
 - Sub-sample delays applied as linear phase in the frequency domain.
-- Pattern length: an integer number of PRBS13Q periods, so circular FFT convolution is exact.
+- Pattern length: an integer number of pattern periods (PRBS13Q 8191 or SSPRQ 65 535 symbols, setting `pattern_length`), so circular FFT convolution is exact.
 
 ---
 

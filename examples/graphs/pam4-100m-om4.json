@@ -1,8 +1,9 @@
 {
   "settings": {
-    "baud": 53125000000,
+    "baud": 53125000000.0,
     "sps": 8,
     "pattern_periods": 1,
+    "pattern_length": 8191,
     "resolution": "mode",
     "level": "power",
     "seed": 0,

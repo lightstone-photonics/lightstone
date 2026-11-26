@@ -7,7 +7,7 @@ references: [ieee-802.3, ieee-802.3bs-d31-tdecq, king-tdecq-eq-optimization-2017
 
 ## What it models
 
-Transmitter and dispersion eye closure for PAM-4 (TDECQ), the IEEE 802.3 figure of merit for PAM-4 optical transmitters. It is the dB ratio of the noise an ideal transmitter could tolerate to the noise this signal can tolerate, measured after a reference receiver and a 5-tap reference equalizer.
+Transmitter and dispersion eye closure for PAM-4 (TDECQ), the IEEE 802.3 figure of merit for PAM-4 optical transmitters. It is the dB ratio of the noise an ideal transmitter could tolerate to the noise this signal can tolerate, measured after a reference receiver and a 5-tap reference equalizer (the number of taps is an option; 1 = no equalizer).
 
 ## Equations
 
@@ -19,7 +19,7 @@ Here $P_\text{ref}(t)$ is the filtered optical power in W and $\mathcal{F}^{-1}$
 
 **Thresholds** (fixed): $P_\text{ave} - \mathrm{OMA_{outer}}/3,\ P_\text{ave},\ P_\text{ave} + \mathrm{OMA_{outer}}/3$. Here $P_\text{ave}$ is the average optical power of the waveform in W and $\mathrm{OMA_{outer}}$ the outer optical modulation amplitude in W (the power difference between levels 3 and 0). As in IEEE 802.3 121.8.4, $P_3$ is the mean over the central 2 UI of a run of 7 threes and $P_0$ the mean over the central 2 UI of a run of 6 zeros (PRBS13Q has both); for patterns without such runs, the mid-symbol values of settled runs are used. The three thresholds separate the four PAM-4 levels.
 
-**Equalizer** (`eq:ffe`): 5 T-spaced taps with $\sum c_i = 1$, where $c_i$ ($i = 0 \dots 4$) are the dimensionless tap weights and $T$ is the symbol period. The constraint keeps the DC gain at 1. Its noise enhancement for noise shaped by the reference receiver is
+**Equalizer** (`eq:ffe`): $L$ T-spaced taps (option `ffe_taps`, default 5 as in IEEE 802.3; odd, 1 … 15; $L = 1$ is no equalization, the single tap is then 1) with the middle tap as main cursor and $\sum c_i = 1$, where $c_i$ ($i = 0 \dots L-1$) are the dimensionless tap weights and $T$ is the symbol period. The constraint keeps the DC gain at 1. Its noise enhancement for noise shaped by the reference receiver is
 
 $$C_\text{eq} = \sqrt{\frac{\int |H_\text{ref}(f)\thinspace H_\text{FFE}(f)|^2 df}{\int |H_\text{ref}(f)|^2 df}}$$
 
@@ -35,7 +35,7 @@ Here $\mathrm{OMA_{outer}}$ is the outer optical modulation amplitude in W, $Q(x
 
 An ideal, ISI-free transmitter gives 0 dB.
 
-Graph node: `tdecq` with inputs `in` (optical, monitor) and `ref` (the transmitted symbols from the pattern source, `prbs-pattern.md`).
+Graph node: `tdecq` with inputs `in` (optical, monitor) and `ref` (the transmitted symbols from the pattern source, `prbs-pattern.md`; PRBS13Q or SSPRQ). Option `ffe_taps` (default 5). A measured scope waveform can be analyzed with the same function from Python (`measured-data.md`).
 
 ![Optical eye after the reference receiver and the 5-tap reference equalizer, with the two TDECQ time slices and the three fixed thresholds.](img/tdecq-eye.svg)
 
@@ -59,8 +59,9 @@ The implementation follows the IEEE 802.3 method (121.8.5.3, with the histogram 
 - The `tdecq` node gives the same TDECQ as the analysis function applied to the lane's reference-receiver waveform (to 10⁻⁹ dB).
 - More reference-receiver bandwidth limitation gives monotonically higher TDECQ.
 - **V14b**: TDECQ at 53.125 GBd over worst-case OM4 agrees with TDECQ through the IEEE 802.3db fiber emulation filter (Table 167-12) within 0.15 dB with matched dispersion (docs/validation.md, Section 3). Both sides use this implementation; it checks the channel, not the TDECQ algorithm.
+- `ffe_taps` (`tdecq.rs`, `tests/python/test_measured.py`): with 1 tap the tap is 1 and $C_\text{eq}$ = 0 dB; on an ISI-limited signal 1 tap gives more TDECQ than 5, and 9 taps no more than 5 (+0.02 dB); even counts are rejected. TDECQ of measured waveforms: `measured-data.md`.
 - **V19** (`tests/python/test_v19_tdecq.py`): an independent TDECQ in `reference/lightstone_ref` (NumPy/SciPy), written from the standard's text: symbol-agnostic histograms, center from the mean crossing time with the 0.1 UI histogram pair shifted for minimum TDECQ, taps optimized for minimum TDECQ (Nelder–Mead), OMA_outer per 121.8.4, band-limited interpolation, and $C_\text{eq}$ from the noise autocorrelation at symbol lags instead of the frequency integral. No public IEEE reference code or waveforms exist to compare with.
   - Analytic: ISI-free PAM-4 with Gaussian noise of RMS $\sigma_s$ has $\mathrm{TDECQ} = 10\log_{10}\big(\sigma_\text{ideal}/\sqrt{\sigma_\text{ideal}^2 - \sigma_s^2}\big)$, $\sigma_\text{ideal} = \mathrm{OMA_{outer}}/(6Q_t)$. Both implementations agree within 0.02 dB for $\sigma_s/\sigma_\text{ideal}$ = 0 … 0.7.
   - Mechanics: with Lightstone's taps, phase and per-symbol histograms the oracle gives Lightstone's TDECQ within 0.02 dB (measured ≤ 0.011 dB), $C_\text{eq}$ within 10⁻⁶ dB, and the same OMA_outer.
   - Method: Lightstone minus the full standard method is +0.05 to +0.06 dB on the reference link at 32 samples/UI (0, 100, 150 m, RJ 0.01 UI); test bound −0.02 … +0.15 dB.
-- Not done: comparison with measured TDECQ or a commercial scope (802.3db uses a 9-tap FFE; this implementation has 5 taps).
+- Not done: comparison with measured TDECQ or a commercial scope (802.3db uses a 9-tap FFE; here the default is 5 taps, and `ffe_taps = 9` is possible).

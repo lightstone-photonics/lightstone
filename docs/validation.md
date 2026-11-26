@@ -33,6 +33,7 @@ The references are analytic results, an independent NumPy implementation (`refer
 | V19 | Analysis | TDECQ: ISI-free PAM-4 with Gaussian noise; reference link 0–150 m, jitter | Analytic TDECQ; independent implementation of the IEEE 802.3 method (`reference/lightstone_ref`) | Analytic < 0.02 dB; same mechanics < 0.02 dB; vs. full method −0.02 … +0.15 dB |
 | V18 | Fiber | OM3/OM4 effective bandwidth 844–918 nm (presets, modes at each λ, same dispersion term) | IEEE 802.3cm table (TIA worst-case EMB + 10G-model dispersion) | 850 nm within 1 %; gap pinned: OM4 +20…28 %, OM3 +6…12 % at 918 nm (documented, not a pass criterion) |
 | S1/S2 | Analysis | Electrical / optical spectrum analyzer | Parseval (signal variance, mean σ²), Bessel–Thomson −3 dB point; OSA total power and line shape | 10⁻⁹ / 10⁻³ |
+| M1 | Measured data | Simulated reference-receiver waveform resampled like a scope capture (23 / 40 samples per UI, 1–3 periods, CSV / `.npy`) | Its own TDECQ | < 0.01 dB (whole periods), < 0.05 dB (1.3 periods) |
 | V15 | Cross-impl. | Rust vs. NumPy reference, all stages | Identical outputs | n_eff < 10⁻¹²; delays 10⁻⁶ of spread; waveforms < 10⁻⁷ relative |
 
 ## 2. V14a: NRZ against the IEEE 802.3ae link model

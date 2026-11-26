@@ -16,6 +16,7 @@
   - Plus analytic checks of the mode solver, coupling, noise and analysis, and a NumPy reference implementation of the whole chain (V1–V15).
 - **A component graph, not a fixed link.** Transmitters, connectors, OM3/OM4/OM5 or custom fibers, attenuators, splitters, combiners, WDM mux/demux and bandpass filters, PIN/TIA, Bessel–Thomson filter, FFE; analyzers for PAM-4/NRZ, eye diagram, TDECQ, power, and optical and electrical spectra. Transmitter jitter (RJ, DCD, SJ with clock recovery) included.
 - **Your own components** in Python (as H(f), impulse response, FIR taps, or a nonlinear function on waveforms) or in Rust; see [`docs/model/example-component.md`](docs/model/example-component.md) and [`docs/model/rust-example.md`](docs/model/rust-example.md).
+- **Measured waveforms:** load a scope capture and get TDECQ (5-tap reference equalizer, other tap counts, or none) and eye metrics with the same code ([`docs/measured-data.md`](docs/measured-data.md)). Test patterns PRBS13Q and SSPRQ.
 - **Runs, sweeps and comparisons** in the editor; graphs and results as JSON, CSV, PNG/SVG. A graph saved in the browser runs unchanged in Python and vice versa.
 
 ![Fiber inspector: guided intensity at the fiber output, power per mode group, index profile, relative group delay per mode, the channel's transfer function and impulse response.](docs/img/screenshot-fiber.png)
@@ -85,6 +86,7 @@ All values are SI units unless a key says otherwise (`*_dbm`, `*_db`, `*_db_per_
 | [`tutorial-component-graph.md`](docs/tutorial-component-graph.md) | Python graph API, custom components, the browser editor |
 | [`model/`](docs/model/) | One document per component: equations, limits, validation, references |
 | [`validation.md`](docs/validation.md) | Validation suite, results and known limitations |
+| [`measured-data.md`](docs/measured-data.md) | Analyzing a scope capture: TDECQ (with or without equalizer), eye, PAM-4 metrics |
 | [`architecture.md`](docs/architecture.md) | Physical model, engine, signal handling, code structure |
 | [`signal-spec.md`](docs/signal-spec.md) | Signal definitions |
 | [`references.yaml`](docs/references.yaml) | Every cited standard, contribution and paper |

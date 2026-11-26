@@ -1393,3 +1393,44 @@ mod wdm {
         assert!(r < tol, "{what}: relative difference {r:e}");
     }
 }
+
+// SSPRQ pattern source (docs/model/prbs-pattern.md, `eq:tx-ssprq`)
+mod ssprq_source {
+    use super::*;
+
+    fn lane_with(pattern: &str, pattern_length: usize) -> Result<GraphEngine, String> {
+        let mut g = lane_graph(&fast_lane(), Resolution::Mode, Level::Power);
+        g.settings.pattern_length = pattern_length;
+        for n in g.nodes.iter_mut().filter(|n| n.kind == "prbs13q") {
+            n.params["pattern"] = serde_json::json!(pattern);
+        }
+        let mut e = GraphEngine::new(g);
+        e.run().map_err(|e| e.to_string())?;
+        Ok(e)
+    }
+
+    #[test]
+    fn ssprq_link_runs_on_a_65535_symbol_grid() {
+        let e = lane_with("ssprq", crate::prbs::SSPRQ_LEN).expect("SSPRQ link runs");
+        let Some(Signal::Data(d)) = e.output("src", "out") else {
+            panic!("no data output");
+        };
+        assert_eq!(*d.symbols, crate::prbs::ssprq());
+        let Some(Signal::Electrical(rx)) = e.output("rxf", "out") else {
+            panic!("no receiver output");
+        };
+        assert_eq!(rx.base.len(), crate::prbs::SSPRQ_LEN * 8);
+    }
+
+    #[test]
+    fn ssprq_on_the_default_grid_is_an_error() {
+        let err = lane_with("ssprq", crate::signal::PATTERN_PERIOD)
+            .err()
+            .expect("must fail");
+        assert!(
+            err.contains("pattern_length") && err.contains("65535"),
+            "{err}"
+        );
+        assert!(lane_with("ssprq-typo", crate::signal::PATTERN_PERIOD).is_err());
+    }
+}

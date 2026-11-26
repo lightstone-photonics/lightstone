@@ -491,7 +491,7 @@ before = await status();
 await nodeEl('src').click();
 await computed(before);
 before = await status();
-await page.selectOption('label.row:has-text("Modulation") select', '2');
+await page.selectOption('label.row:has-text("Pattern") select', 'nrz');
 const nrzSt = await computed(before);
 check((await badgeOf('src')) === 'NRZ (PRBS13)', `pattern source switched to NRZ (${nrzSt})`);
 const nrzSer = await readout('ana');
@@ -544,6 +544,19 @@ const fs1 = await nodeEl('ana0').locator('.lcd .value').evaluate((el) => parseFl
 check(lcdH1 > lcdH0 + 40 && fs1 > fs0, `resizing the analyzer node enlarges its LCD (${Math.round(lcdH0)} → ${Math.round(lcdH1)} px, value ${fs0.toFixed(0)} → ${fs1.toFixed(0)} px)`);
 await page.click('.svelte-flow__controls-fitview');
 await shot('swdm4');
+
+// SSPRQ: the pattern selector switches the source and the grid (65 535 symbols per period).
+before = await status();
+await page.click('button.menubtn');
+await page.click('.dropdown button:has-text("PAM-4 link, 100 m OM4")');
+await computed(before);
+await clickNode('src');
+before = await status();
+await page.selectOption('label.row:has-text("Pattern") select', 'ssprq');
+const ssSt = await computed(before);
+check((await badgeOf('src')) === 'PAM-4 (SSPRQ, unverified)' && /^SER \d/.test(await readout('ana')),
+  `SSPRQ from the pattern selector: ${await badgeOf('src')}, ${await readout('ana')} (${ssSt})`);
+check((await page.textContent('.message')).includes('65535 symbols'), 'SSPRQ sets the grid length');
 
 console.log('errors:', errors.length ? errors : 'none');
 await browser.close();

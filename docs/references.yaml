@@ -104,6 +104,33 @@
   used_by: [tdecq]
   note: "The 0.45/0.55 UI histogram pair may be shifted (e.g. to minimize TDECQ), keeping 0.1 UI spacing."
 
+- id: anslow-ssprq-2016
+  title: "P. Anslow, 'SSPRQ test pattern', IEEE P802.3bs SMF ad hoc, April 2016"
+  type: contribution
+  url: https://grouper.ieee.org/groups/802/3/bs/public/adhoc/smf/16_04_19/anslow_01_0416_smf.pdf
+  access: free
+  checked: 2026-11-24
+  used_by: [prbs-pattern]
+  note: "SSPRQ construction from three PRBS31 sections (seeds 0x00000002, 0x34013FF7, 0x0CCCCCCC), 32 766- and 65 535-symbol versions."
+
+- id: anslow-sspr-generation-2016
+  title: "P. Anslow, 'SSPR generation', IEEE P802.3bs logic ad hoc, October 2016"
+  type: contribution
+  url: https://grouper.ieee.org/groups/802/3/bs/public/adhoc/logic/oct27_16/anslow_02a_1016_logic.pdf
+  access: free
+  checked: 2026-11-24
+  used_by: [prbs-pattern]
+  note: "The SSPRQ hex values become seeds of the PRBS31 generator of Figure 49-9 (inverted output)."
+
+- id: dawe-ssprq-2017
+  title: "P. Dawe, 'Improved pattern for testing optical transmitters', IEEE P802.3bs, March 2017"
+  type: contribution
+  url: https://www.ieee802.org/3/bs/public/17_03/dawe_3bs_01a_0317.pdf
+  access: free
+  checked: 2026-11-24
+  used_by: [prbs-pattern]
+  note: "Proposes the first SSPRQ seed 0x022A0ED0 instead of 0x00000002; adoption not confirmed here."
+
 - id: tia-492aaad
   title: "TIA-492AAAD – Detail specification for 850-nm laser-optimized 50-µm core multimode fiber (OM4)"
   type: standard

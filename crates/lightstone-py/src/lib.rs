@@ -275,6 +275,26 @@ fn analyze(
     to_json(&ana::analyze_levels(x, model, s, m, sps, &opts))
 }
 
+/// Symbols of a named test pattern: "prbs13q" (8191 symbols; PRBS13 for levels = 2) or
+/// "ssprq" (65 535 PAM-4 symbols; unverified against the standard, docs/model/prbs-pattern.md).
+#[pyfunction]
+#[pyo3(signature = (name="prbs13q", levels=4, seed=lightstone_core::prbs::PRBS13_DEFAULT_SEED))]
+fn test_pattern<'py>(
+    py: Python<'py>,
+    name: &str,
+    levels: u8,
+    seed: u16,
+) -> PyResult<Bound<'py, numpy::PyArray1<u8>>> {
+    if seed & 0x1FFF == 0 {
+        return Err(PyValueError::new_err(
+            "PRBS13 seed must be nonzero (13 bits)",
+        ));
+    }
+    let v =
+        lightstone_core::prbs::named_pattern(name, levels, seed).map_err(PyValueError::new_err)?;
+    Ok(v.into_pyarray(py))
+}
+
 /// TDECQ of a reference-receiver-filtered optical waveform. Returns JSON.
 #[pyfunction]
 #[pyo3(signature = (waveform, symbols, sps, baud, options_json=None))]
@@ -301,6 +321,7 @@ fn tdecq(
             "TDECQ is defined for PAM-4 only (the symbols are NRZ)",
         ));
     }
+    opts.validate().map_err(PyValueError::new_err)?;
     to_json(&ana::tdecq(x, s, sps, baud, &opts))
 }
 
@@ -706,6 +727,7 @@ fn _lightstone(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(couple, m)?)?;
     m.add_function(wrap_pyfunction!(analyze, m)?)?;
     m.add_function(wrap_pyfunction!(tdecq, m)?)?;
+    m.add_function(wrap_pyfunction!(test_pattern, m)?)?;
     m.add_function(wrap_pyfunction!(eye_density, m)?)?;
     m.add_class::<PySimulator>()?;
     m.add_class::<PySystem>()?;

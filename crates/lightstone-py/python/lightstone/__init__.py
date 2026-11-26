@@ -26,6 +26,7 @@ from typing import Any, Callable, Mapping
 import numpy as np
 
 from . import _lightstone
+from .measured import MeasuredWaveform, measured_waveform, read_waveform, test_pattern  # noqa: E402
 
 __all__ = [
     "default_config",
@@ -55,6 +56,10 @@ __all__ = [
     "register",
     "builtin_kinds",
     "fiber_presets",
+    "test_pattern",
+    "MeasuredWaveform",
+    "measured_waveform",
+    "read_waveform",
 ]
 
 __version__ = "0.1.0"

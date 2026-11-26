@@ -30,7 +30,11 @@ use std::sync::Arc;
 pub fn register(r: &mut Registry) {
     r.register_builtin("pam4_analyzer", |p, _| Ok(Box::new(Pam4Node(parse(p)?))));
     r.register_builtin("eye_diagram", |p, _| Ok(Box::new(EyeNode(parse(p)?))));
-    r.register_builtin("tdecq", |p, _| Ok(Box::new(TdecqNode(parse(p)?))));
+    r.register_builtin("tdecq", |p, _| {
+        let o: TdecqOptions = parse(p)?;
+        o.validate()?;
+        Ok(Box::new(TdecqNode(o)))
+    });
     r.register_builtin("optical_spectrum_analyzer", |p, _| {
         Ok(Box::new(crate::spectrum::Osa::new(parse(p)?)?))
     });

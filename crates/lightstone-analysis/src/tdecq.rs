@@ -49,6 +49,10 @@ pub struct TdecqOptions {
     pub histogram_bins: usize,
     /// OMA_outer measured separately (e.g. per 121.8.4); `None` = settled runs of the pattern.
     pub oma_outer: Option<f64>,
+    /// Taps of the T-spaced reference equalizer (odd, 1 … 15; default 5 as in IEEE 802.3).
+    /// 1 = no equalization (the single tap is 1 because Σc = 1). The main cursor is the middle
+    /// tap.
+    pub ffe_taps: usize,
 }
 
 impl Default for TdecqOptions {
@@ -59,7 +63,21 @@ impl Default for TdecqOptions {
             delay: None,
             histogram_bins: 1000,
             oma_outer: None,
+            ffe_taps: 5,
         }
+    }
+}
+
+impl TdecqOptions {
+    /// Check the options (bindings and the graph node call this before [`tdecq`]).
+    pub fn validate(&self) -> Result<(), String> {
+        let l = self.ffe_taps;
+        if l.is_multiple_of(2) || !(1..=15).contains(&l) {
+            return Err(format!(
+                "ffe_taps must be odd and 1 … 15 (1 = no equalizer, 5 = IEEE reference); got {l}"
+            ));
+        }
+        Ok(())
     }
 }
 
@@ -69,7 +87,7 @@ pub struct TdecqResult {
     pub tdecq_db: Option<f64>,
     /// 10·log₁₀(C_eq) \[dB\].
     pub ceq_db: f64,
-    pub taps: [f64; 5],
+    pub taps: Vec<f64>,
     pub oma_outer: f64,
     pub p_ave: f64,
     pub thresholds: [f64; 3],
@@ -84,51 +102,55 @@ pub fn q_t() -> f64 {
     q_inv(SER_TARGET / 1.5)
 }
 
-/// Constrained LS FFE: minimize Σ(Σⱼ cⱼ y_{n+2−j} − tₙ)² subject to Σcⱼ = 1.
-/// Returns (taps, mean squared error).
-fn design_ffe(y: &[f64], t: &[f64]) -> ([f64; 5], f64) {
+/// Constrained LS FFE with `l` taps, main cursor `m = (l − 1)/2`: minimize
+/// Σ(Σⱼ cⱼ y_{n+m−j} − tₙ)² subject to Σcⱼ = 1. Returns (taps, mean squared error).
+fn design_ffe(y: &[f64], t: &[f64], l: usize) -> (Vec<f64>, f64) {
     let n = y.len();
+    let m = (l - 1) as i64 / 2;
     let at = |i: i64| y[i.rem_euclid(n as i64) as usize];
-    let mut r = vec![vec![0.0; 6]; 6];
-    let mut p = vec![0.0; 6];
+    let mut r = vec![vec![0.0; l + 1]; l + 1];
+    let mut p = vec![0.0; l + 1];
+    let mut v = vec![0.0; l];
     for k in 0..n as i64 {
-        let v: [f64; 5] = std::array::from_fn(|j| at(k + 2 - j as i64));
-        for i in 0..5 {
-            for j in 0..5 {
+        for (j, x) in v.iter_mut().enumerate() {
+            *x = at(k + m - j as i64);
+        }
+        for i in 0..l {
+            for j in 0..l {
                 r[i][j] += v[i] * v[j];
             }
             p[i] += v[i] * t[k as usize];
         }
     }
-    for i in 0..5 {
-        r[i][5] = 1.0;
-        r[5][i] = 1.0;
+    for i in 0..l {
+        r[i][l] = 1.0;
+        r[l][i] = 1.0;
     }
-    p[5] = 1.0;
-    let x = solve_dense(r, p);
-    let c: [f64; 5] = std::array::from_fn(|i| x[i]);
+    p[l] = 1.0;
+    let c: Vec<f64> = solve_dense(r, p)[..l].to_vec();
     let mut mse = 0.0;
     for k in 0..n as i64 {
-        let e: f64 = (0..5).map(|j| c[j] * at(k + 2 - j as i64)).sum::<f64>() - t[k as usize];
+        let e: f64 = (0..l).map(|j| c[j] * at(k + m - j as i64)).sum::<f64>() - t[k as usize];
         mse += e * e;
     }
     (c, mse / n as f64)
 }
 
 /// Noise enhancement of the FFE for noise shaped by the reference receiver.
-fn noise_enhancement(c: &[f64; 5], baud: f64, f3db_rel: f64) -> f64 {
+fn noise_enhancement(c: &[f64], baud: f64, f3db_rel: f64) -> f64 {
     let bt = BesselThomson4::new(f3db_rel * baud);
     let t = 1.0 / baud;
+    let m = (c.len() - 1) as f64 / 2.0;
     let fmax = 6.0 * baud;
-    let m = 6000;
-    let df = fmax / m as f64;
+    let steps = 6000;
+    let df = fmax / steps as f64;
     let (mut num, mut den) = (0.0, 0.0);
-    for i in 0..m {
+    for i in 0..steps {
         let f = (i as f64 + 0.5) * df;
         let hr = bt.response(f).norm_sqr();
         let mut hf = Complex64::new(0.0, 0.0);
         for (j, cj) in c.iter().enumerate() {
-            hf += Complex64::from_polar(*cj, -2.0 * PI * f * (j as f64 - 2.0) * t);
+            hf += Complex64::from_polar(*cj, -2.0 * PI * f * (j as f64 - m) * t);
         }
         num += hr * hf.norm_sqr();
         den += hr;
@@ -263,11 +285,16 @@ pub fn tdecq(
 
     // 1) MMSE phase search (cheap).
     let mut mses = Vec::with_capacity(np);
-    let mut per_phase: Vec<[f64; 5]> = Vec::with_capacity(np);
+    let l = opts.ffe_taps;
+    if let Err(e) = opts.validate() {
+        panic!("{e}");
+    }
+    let main = (l - 1) / 2;
+    let mut per_phase: Vec<Vec<f64>> = Vec::with_capacity(np);
     for i in 0..np {
         let ph = i as f64 / np as f64;
         let y = s.at_phase(ph);
-        let (c, mse) = design_ffe(&y, &target);
+        let (c, mse) = design_ffe(&y, &target, l);
         per_phase.push(c);
         mses.push(mse);
     }
@@ -296,7 +323,7 @@ pub fn tdecq(
     let mut best: Option<TdecqResult> = None;
     for idx in candidates {
         let ph = idx as f64 / np as f64;
-        let c = per_phase[idx];
+        let c = per_phase[idx].clone();
         let ceq = noise_enhancement(&c, baud, opts.ref_f3db_rel);
         let mut hists = Vec::with_capacity(2);
         for side in [-slice_off, slice_off] {
@@ -304,7 +331,7 @@ pub fn tdecq(
             for w in &window {
                 let y = s.at_phase(ph + side + w);
                 for k in 0..n {
-                    let e: f64 = (0..5).map(|j| c[j] * y[(k + n + 2 - j) % n]).sum();
+                    let e: f64 = (0..l).map(|j| c[j] * y[(k + n + main - j) % n]).sum();
                     vals.push((symbols[k], e));
                 }
             }
@@ -397,6 +424,54 @@ mod tests {
         let t = r.tdecq_db.unwrap();
         assert!(t.abs() < 0.1, "TDECQ {t} dB, taps {:?}", r.taps);
         assert!((r.oma_outer - 1.2e-3).abs() < 1e-12);
+    }
+
+    /// `ffe_taps`: 1 tap is no equalization (tap = 1, C_eq = 0 dB); more taps never raise
+    /// TDECQ on an ISI-limited signal; even or out-of-range counts are rejected.
+    #[test]
+    fn ffe_tap_count() {
+        use lightstone_core::dsp::Spectral;
+        let syms = prbs13q(PRBS13_DEFAULT_SEED);
+        let lv = [0.2e-3, 0.6e-3, 1.0e-3, 1.4e-3];
+        let (sps, baud) = (16, 53.125e9);
+        let w: Vec<f64> = syms
+            .iter()
+            .flat_map(|&s| std::iter::repeat_n(lv[s as usize], sps))
+            .collect();
+        let bt = BesselThomson4::new(0.5 * baud);
+        let y = Spectral::new(w.len()).filter(&w, baud * sps as f64, |f| bt.response(f));
+        let run = |l| {
+            tdecq(
+                &y,
+                &syms,
+                sps,
+                baud,
+                &TdecqOptions {
+                    ffe_taps: l,
+                    ..TdecqOptions::default()
+                },
+            )
+        };
+        let (r1, r5, r9) = (run(1), run(5), run(9));
+        assert_eq!(r1.taps, vec![1.0]);
+        assert!(r1.ceq_db.abs() < 1e-9, "C_eq {} dB", r1.ceq_db);
+        assert_eq!(r5.taps.len(), 5);
+        let (t1, t5, t9) = (
+            r1.tdecq_db.unwrap(),
+            r5.tdecq_db.unwrap(),
+            r9.tdecq_db.unwrap(),
+        );
+        assert!(
+            t1 > t5 + 0.1 && t9 <= t5 + 0.02,
+            "1 tap {t1}, 5 taps {t5}, 9 taps {t9}"
+        );
+        for bad in [0, 2, 17] {
+            let o = TdecqOptions {
+                ffe_taps: bad,
+                ..TdecqOptions::default()
+            };
+            assert!(o.validate().is_err());
+        }
     }
 
     #[test]

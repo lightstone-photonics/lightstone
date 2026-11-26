@@ -163,6 +163,9 @@ struct PrbsParams {
     seed: Option<u16>,
     /// Alphabet size: 4 = PAM-4 (PRBS13Q), 2 = NRZ (PRBS13).
     levels: u8,
+    /// `"prbs13q"` (default; PRBS13 for NRZ) or `"ssprq"` (PAM-4 only, 65 535 symbols; needs
+    /// `settings.pattern_length = 65535`).
+    pattern: String,
 }
 
 impl Default for PrbsParams {
@@ -170,6 +173,7 @@ impl Default for PrbsParams {
         Self {
             seed: None,
             levels: 4,
+            pattern: "prbs13q".into(),
         }
     }
 }
@@ -178,6 +182,7 @@ impl Default for PrbsParams {
 struct Prbs {
     seed: u16,
     levels: u8,
+    pattern: String,
 }
 
 impl Prbs {
@@ -187,10 +192,11 @@ impl Prbs {
         if seed & 0x1FFF == 0 {
             return Err("PRBS13 seed must be nonzero (13 bits).".into());
         }
-        crate::prbs::pattern(p.levels, seed)?;
+        crate::prbs::named_pattern(&p.pattern, p.levels, seed)?;
         Ok(Self {
             seed,
             levels: p.levels,
+            pattern: p.pattern,
         })
     }
 }
@@ -206,8 +212,18 @@ impl Component for Prbs {
         Linearity::Linear
     }
     fn process(&self, ctx: &mut ProcessCtx, _: &[Signal]) -> Result<Output, String> {
-        let one = crate::prbs::pattern(self.levels, self.seed)?;
-        let periods = ctx.grid.n_symbols / PATTERN_PERIOD;
+        let one = crate::prbs::named_pattern(&self.pattern, self.levels, self.seed)?;
+        if !ctx.grid.n_symbols.is_multiple_of(one.len()) {
+            return Err(format!(
+                "The pattern has {} symbols, but the simulation grid has {} \
+                 (settings.pattern_length = {}); set pattern_length to {}.",
+                one.len(),
+                ctx.grid.n_symbols,
+                ctx.settings.pattern_length,
+                one.len()
+            ));
+        }
+        let periods = ctx.grid.n_symbols / one.len();
         let mut s = Vec::with_capacity(ctx.grid.n_symbols);
         for _ in 0..periods {
             s.extend_from_slice(&one);

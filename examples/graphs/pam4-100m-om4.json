@@ -25,7 +25,7 @@
         "cdr_corner": 4000000.0,
         "dcd": 0.0,
         "rj_rms": 0.0,
-        "seed": 5355905856850362371,
+        "seed": "5355905856850362371",
         "sj_amplitude": 0.0,
         "sj_frequency": 100000000.0
       }
@@ -38,7 +38,7 @@
         "er_db": 4.0,
         "p_avg_dbm": 0.0,
         "rin_enabled": true,
-        "seed": 8383450706350178305,
+        "seed": "8383450706350178305",
         "stokes": [
           1.0,
           0.0,
@@ -79,7 +79,7 @@
       "kind": "pin",
       "params": {
         "detector_radius": null,
-        "noise_seed": 5933492509060628482,
+        "noise_seed": "5933492509060628482",
         "responsivity": 0.5,
         "shot_noise": true
       }
@@ -89,7 +89,7 @@
       "kind": "tia",
       "params": {
         "noise_density": 1.5e-11,
-        "noise_seed": 5933492509060628482,
+        "noise_seed": "5933492509060628482",
         "thermal_noise": true,
         "transimpedance": 1000.0
       }

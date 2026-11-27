@@ -276,7 +276,7 @@ Each component declares its ports, parameters, a model document (`docs/model/*.m
 - **Mode resolution** is a simulation setting: `ModeGroup` (default) or `Mode`. Components do not depend on it.
 - Noise terms are carried along with their accumulated filters. After a nonlinear block, analyses switch from the semi-analytic SER to a Monte Carlo SER and say so.
 - Results are cached per node and output, keyed by the node's parameters and its inputs' cache keys.
-- Graphs are saved as JSON (nodes, parameters, wires, and an optional `layout` with editor node positions that the engine ignores). The JSON is the same format for Python, the browser and later shareable links.
+- Graphs are saved as JSON (nodes, parameters, wires, and an optional `layout` with editor node positions that the engine ignores). The JSON is the same format for Python, the browser and later shareable links. Noise seeds above 2⁵³ − 1 are written as decimal strings (e.g. `"seed": "5933492509060628482"`), because JavaScript numbers would round them and the browser would then draw a different noise realization than Python; numbers and strings are both accepted when reading (`lightstone-core::seed`).
 
 ### 7.4 Custom components
 

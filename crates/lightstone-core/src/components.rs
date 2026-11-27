@@ -242,6 +242,7 @@ impl Component for Prbs {
 pub struct DriverParams {
     #[serde(flatten)]
     pub jitter: JitterConfig,
+    #[serde(with = "crate::seed::opt")]
     pub seed: Option<u64>,
 }
 
@@ -474,6 +475,7 @@ pub struct VcselParams {
     pub beam_radius: f64,
     pub vcsel_mode_groups: u32,
     pub rin_enabled: bool,
+    #[serde(with = "crate::seed::opt")]
     pub seed: Option<u64>,
     /// Emitted normalized Stokes vector; default unpolarized.
     pub stokes: [f64; 4],
@@ -1184,6 +1186,7 @@ struct PinParams {
     responsivity_spectrum: ResponsivitySpectrum,
     detector_radius: Option<f64>,
     shot_noise: bool,
+    #[serde(with = "crate::seed::opt")]
     noise_seed: Option<u64>,
 }
 
@@ -1396,6 +1399,7 @@ struct TiaParams {
     transimpedance: f64,
     noise_density: f64,
     thermal_noise: bool,
+    #[serde(with = "crate::seed::opt")]
     noise_seed: Option<u64>,
     /// Output limits \[low, high\] \[V\]. Makes the TIA nonlinear (`eq:tia-clip`).
     clip: Option<[f64; 2]>,

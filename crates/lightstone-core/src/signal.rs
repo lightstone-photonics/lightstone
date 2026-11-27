@@ -68,6 +68,7 @@ pub struct Settings {
     /// Level at which sources emit.
     pub level: Level,
     /// Base seed for components without an explicit seed.
+    #[serde(with = "crate::seed::plain")]
     pub seed: u64,
     /// Reserved: propagate backward waves (signal-spec 11.1). No current component reflects.
     pub backward_waves: bool,

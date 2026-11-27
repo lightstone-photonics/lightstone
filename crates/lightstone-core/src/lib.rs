@@ -33,6 +33,7 @@ pub mod modes;
 pub mod prbs;
 pub mod rng;
 pub mod rx;
+pub mod seed;
 pub mod signal;
 pub mod system;
 pub mod tx;

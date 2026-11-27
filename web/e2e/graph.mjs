@@ -57,12 +57,19 @@ console.log('start page:', await computed(0));
 check((await page.locator('.svelte-flow__node-component').count()) === 12 && (await nodeEl('eye').locator('.thumb canvas').count()) === 1,
   'start page: the PAM-4 example (reference link + eye diagram + analyzer)');
 check(/^SER \d/.test(await readout('ana')), `start page analyzer: ${await readout('ana')}`);
+// Noise seeds above 2^53 are strings, so the browser keeps them exactly (same noise as Python).
+const startSaved = JSON.parse(await page.evaluate(() => localStorage.getItem('lightstone.graph-editor.v1')));
+const seedOf = (g, id, k) => g.nodes.find((n) => n.id === id).params[k];
+check(seedOf(startSaved, 'drv', 'seed') === '5355905856850362371' && seedOf(startSaved, 'pin', 'noise_seed') === '5933492509060628482',
+  `start page keeps the exact noise seeds: drv ${seedOf(startSaved, 'drv', 'seed')}, pin ${seedOf(startSaved, 'pin', 'noise_seed')}`);
 await shot('start');
 // The rest of the test starts from the bare reference link.
 await page.click('button.menubtn');
 let before0 = await status();
 await page.click('.dropdown button:has-text("Reference link (bare)")');
 console.log('reference:', await computed(before0));
+const refSaved = JSON.parse(await page.evaluate(() => localStorage.getItem('lightstone.graph-editor.v1')));
+check(refSaved.nodes.find((n) => n.id === 'vcsel').params.seed === '8383450706350178305', 'reference link from the engine keeps its exact seeds');
 // The canvas redraws nodes and wires after the run: wait until the new graph is on screen
 // (the start page had 12 nodes and 14 wires), instead of counting a half-drawn canvas.
 const settled = await page.waitForFunction(

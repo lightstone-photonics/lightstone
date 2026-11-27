@@ -486,7 +486,7 @@ g2 = lightstone.Graph.from_json(open("link.json").read())
 }
 ```
 
-The browser's graph editor reads and writes the same format (Section 8.1). An optional `layout` entry stores the node positions of the editor; the engine ignores it, and Python keeps it when saving. A saved graph that uses custom kinds only stores their names. The components themselves must be defined (decorator or `components=[…]`) before the graph runs.
+The browser's graph editor reads and writes the same format (Section 8.1). An optional `layout` entry stores the node positions of the editor; the engine ignores it, and Python keeps it when saving. Large noise seeds (above 2⁵³ − 1, as in the reference link) appear as strings, `"seed": "5355905856850362371"`, so that browser and Python draw the same noise; you can give seeds as numbers or strings. A saved graph that uses custom kinds only stores their names. The components themselves must be defined (decorator or `components=[…]`) before the graph runs.
 
 ### 8.1 The same graph in the browser
 

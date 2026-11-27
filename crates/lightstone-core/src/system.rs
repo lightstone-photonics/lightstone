@@ -390,13 +390,13 @@ pub fn lane_graph(cfg: &LaneConfig, resolution: Resolution, level: Level) -> Gra
         "pin",
         "pin",
         json!({ "responsivity": rx.responsivity, "detector_radius": rx.detector_radius,
-                "shot_noise": rx.shot_noise, "noise_seed": rx_seed }),
+                "shot_noise": rx.shot_noise, "noise_seed": crate::seed::to_json(rx_seed) }),
     )
     .node(
         "tia",
         "tia",
         json!({ "transimpedance": rx.transimpedance, "noise_density": rx.noise_density,
-                "thermal_noise": rx.thermal_noise, "noise_seed": rx_seed }),
+                "thermal_noise": rx.thermal_noise, "noise_seed": crate::seed::to_json(rx_seed) }),
     )
     .node(
         "rxf",

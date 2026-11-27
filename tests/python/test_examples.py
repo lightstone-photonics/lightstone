@@ -38,3 +38,26 @@ def test_example_runs_and_channels_meet_kp4(name):
     assert analyzers
     for a in analyzers:
         assert g.report(a)["ber"] < 2.4e-4, (name, a)
+
+
+def test_large_seeds_survive_javascript():
+    """Seeds above 2^53 are written as strings (JavaScript numbers would round them), and a
+    graph gives the same noise realization with the seed as a string or as a number."""
+    cfg = lightstone.Graph.reference(lane_config={"tx": {"sps": 8}}).config
+    drv = next(n for n in cfg["nodes"] if n["id"] == "drv")
+    assert isinstance(drv["params"]["seed"], str) and int(drv["params"]["seed"]) > 2**53
+    as_numbers = json.loads(json.dumps(cfg))
+    for n in as_numbers["nodes"]:
+        for k in ("seed", "noise_seed"):
+            if isinstance(n["params"].get(k), str):
+                n["params"][k] = int(n["params"][k])
+    a = lightstone.Graph(cfg).run().receiver().signal
+    b = lightstone.Graph(as_numbers).run().receiver().signal
+    assert (a == b).all()
+    rounded = json.loads(json.dumps(as_numbers))
+    for n in rounded["nodes"]:
+        for k in ("seed", "noise_seed"):
+            if isinstance(n["params"].get(k), int) and n["params"][k] > 2**53:
+                n["params"][k] = int(float(n["params"][k]))  # what JSON.parse did before
+    c = lightstone.Graph(rounded).run().receiver().signal
+    assert not (a == c).all()
